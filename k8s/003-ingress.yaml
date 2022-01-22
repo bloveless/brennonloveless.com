@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: brennonloveless-com
+  namespace: brennonloveless-com
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.org/redirect-to-https: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - brennonloveless.com
+      secretName: brennonloveless-com-crt
+  rules:
+    - host: brennonloveless.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: brennonloveless-com
+                port:
+                  number: 80
