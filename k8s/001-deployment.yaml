@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
       - name: brennonloveless-com
-        image: bloveless/brennonloveless-com:0.0.1-alpha.1
+        image: ghcr.io/bloveless/brennonloveless.com:main
         ports:
         - containerPort: 80
-
+      imagePullSecrets:
+      - name: ghcr-docker-config
