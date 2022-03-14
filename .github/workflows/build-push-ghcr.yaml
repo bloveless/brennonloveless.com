@@ -8,7 +8,7 @@ name: Create and publish a Docker image
 on:
   push:
     branches:
-    - 'main'
+    - '*'
 
 env:
   REGISTRY: ghcr.io
@@ -60,5 +60,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ steps.meta.outputs.tags }} 
-          cache-to: type=registry,ref=${{ steps.meta.outputs.tags }},mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          #cache-from: type=registry,ref=${{ steps.meta.outputs.tags }} 
+          #cache-to: type=registry,ref=${{ steps.meta.outputs.tags }},mode=max
