@@ -1,0 +1,43 @@
+languageCode: "en-us"
+baseUrl: ""
+title: "Brennon Loveless"
+theme: "anubis"
+paginate: 10
+disqusShortname: ""
+googleAnalytics: "G-12345"
+enableRobotsTXT: true
+
+menu:
+  main:
+  - identifier: home
+    name: Home
+    title: Home
+    url: /
+    weight: 1
+  - identifier: about
+    name: About
+    title: About
+    url: /about
+    weight: 0
+
+params:
+  author: "Brennon Loveless"
+  email: brennon.loveless@gmail.com # used for microformats
+  avatar: "/images/brennon.jpeg" # used for microformats
+  description: ""
+  dateFormat: "2006-01-02"
+  paginationSinglePost: true
+  style: light-without-switcher
+  readMore: false # show read more button
+  readNextPosts: 5  # show 5 related posts, 0 by default
+  disableSummary: false
+  copyCodeButton: true # true by default
+  rssAsSocialIcon: true
+  social:
+  - id: github
+    name: bloveless
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true # enable raw HTML in Markdown

@@ -1,0 +1,15 @@
+{{ define "main" }}
+    <div class="index-content">
+        {{ .Content }}
+    </div>
+
+    <div class="articles h-feed">
+        <h1 class="post-title">{{ i18n .Title }}</h1>
+        {{ range .Pages }}
+            <div class="post-short-list h-entry">
+                {{ partial "post-summary.html" . }}
+            </div>
+        {{ end }}
+    </div>
+
+{{ end }}

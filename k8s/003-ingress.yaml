@@ -5,9 +5,8 @@ metadata:
   namespace: brennonloveless-com
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.org/redirect-to-https: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: contour
   tls:
     - hosts:
         - brennonloveless.com
