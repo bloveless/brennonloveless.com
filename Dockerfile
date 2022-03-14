@@ -1,8 +1,8 @@
 FROM golang:1.17.6 as builder
 
-RUN mkdir -p /go/app
-
 RUN go install github.com/gohugoio/hugo@v0.92.0
+
+RUN mkdir -p /go/app
 
 WORKDIR /go/app
 
