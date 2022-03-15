@@ -88,9 +88,7 @@ jobs:
         if: ${{ matrix.platform == 'arm64' }}
         run: |
           echo "${{ secrets.CA_CRT }}" > ca.crt
-          echo "${{ secrets.USER_KEY }}" > user.key
           echo "${{ secrets.SECRET_USERNAME_PASSWORD }}" > secret.txt
-          echo "${{ secrets.TLS_KEY }}" > tls.key
 
       - name: Connect VPN
         if: ${{ matrix.platform == 'arm64' }}
