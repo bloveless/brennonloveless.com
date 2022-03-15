@@ -105,7 +105,7 @@ jobs:
         with: # defaults to latest kubectl binary version
           config: ${{ secrets.KUBE_CONFIG }}
           version: v1.22.7
-          command: set image --record deployment/brennonloveless-com brennonloveless-com=${{ steps.build.outputs.imageid }}
+          command: -n brennonloveless-com set image deployment/brennonloveless-com brennonloveless-com=${{.steps.meta.outputs.tags.}}
 
       - name: verify deployment
         uses: steebchen/kubectl@v2.0.0
