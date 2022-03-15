@@ -101,6 +101,7 @@ jobs:
         run: until ping -c1 192.168.4.249; do sleep 2; done
 
       - name: deploy to cluster
+        if: ${{ matrix.platform == 'arm64' }}
         uses: steebchen/kubectl@v2.0.0
         with: # defaults to latest kubectl binary version
           config: ${{ secrets.KUBE_CONFIG }}
@@ -108,6 +109,7 @@ jobs:
           command: -n brennonloveless-com set image deployment/brennonloveless-com brennonloveless-com=${{ steps.meta.outputs.tags }}@${{ steps.build.outputs.imageid }}
 
       - name: verify deployment
+        if: ${{ matrix.platform == 'arm64' }}
         uses: steebchen/kubectl@v2.0.0
         with:
           config: ${{ secrets.KUBE_CONFIG }}
