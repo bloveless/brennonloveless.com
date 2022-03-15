@@ -100,7 +100,7 @@ jobs:
 
       - name: Connect VPN
         if: ${{ matrix.platform == 'arm64' }}
-        run: sudo openvpn --config "$(pwd).github/vpn/client.ovpn" --log "vpn.log" --daemon
+        run: sudo openvpn --config "$(pwd)/.github/vpn/client.ovpn" --log "vpn.log" --daemon
 
       - name: Wait for a VPN connection
         if: ${{ matrix.platform == 'arm64' }}
