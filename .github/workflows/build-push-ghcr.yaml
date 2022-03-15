@@ -90,14 +90,6 @@ jobs:
           echo "${{ secrets.CA_CRT }}" > ca.crt
           echo "${{ secrets.SECRET_USERNAME_PASSWORD }}" > secret.txt
 
-      - name: LS
-        if: ${{ matrix.platform == 'arm64' }}
-        run: ls $(pwd)/.github/vpn
-
-      - name: CAT
-        if: ${{ matrix.platform == 'arm64' }}
-        run: cat "$(pwd)/.github/vpn/client.ovpn"
-
       - name: Connect VPN
         if: ${{ matrix.platform == 'arm64' }}
         run: sudo openvpn --config "$(pwd)/.github/vpn/client.ovpn" --log "vpn.log" --daemon
@@ -110,6 +102,12 @@ jobs:
       - name: Deploy
         if: ${{ matrix.platform == 'arm64' }}
         run: echo deploy
+
+      - uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: get deployments
 
       - name: Kill VPN connection
         if: ${{ matrix.platform == 'arm64' && always() }}
