@@ -112,7 +112,7 @@ jobs:
         with:
           config: ${{ secrets.KUBE_CONFIG }}
           version: v1.22.7
-          command: rollout status deployment/brennonloveless-com
+          command: -n brennonloveless-com rollout status deployment/brennonloveless-com
 
       - name: Kill VPN connection
         if: ${{ matrix.platform == 'arm64' && always() }}
