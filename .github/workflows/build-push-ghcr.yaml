@@ -77,3 +77,44 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Install OpenVPN
+        if: ${{ matrix.platform == "arm64 "}}
+        run: |
+          sudo apt-get update
+          sudo apt-get --assume-yes --no-install-recommends install openvpn
+
+      - name: Setup VPN config
+        if: ${{ matrix.platform == "arm64 "}}
+        run: |
+          echo "${{ secrets.CA_CRT }}" > ca.crt
+          echo "${{ secrets.USER_CRT }}" > user.crt
+          echo "${{ secrets.USER_KEY }}" > user.key
+          echo "${{ secrets.SECRET_USERNAME_PASSWORD }}" > secret.txt
+          echo "${{ secrets.TLS_KEY }}" > tls.key
+
+      - name: Connect VPN
+        if: ${{ matrix.platform == "arm64 "}}
+        run: sudo openvpn --config ".github/vpn/config.ovpn" --log "vpn.log" --daemon
+
+      - name: Wait for a VPN connection
+        if: ${{ matrix.platform == "arm64 "}}
+        timeout-minutes: 1
+        run: until ping -c1 192.168.4.249; do sleep 2; done
+
+      - name: Deploy
+        if: ${{ matrix.platform == "arm64 "}}
+        run: echo deploy
+
+      - name: Kill VPN connection
+        if: ${{ matrix.platform == "arm64 "}}
+        run: |
+          sudo chmod 777 vpn.log
+          sudo killall openvpn
+
+      - name: Upload VPN logs
+        uses: actions/upload-artifact@v2
+        if: ${{ matrix.platform == "arm64 "}}
+        with:
+          name: VPN logs
+          path: vpn.log
