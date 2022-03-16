@@ -14,7 +14,12 @@ First and foremost, I’m doing this just for fun! I’m completely open to sugg
 
 With that being said, let’s get started!
 
-![The original hand crank for the desk](https://cdn-images-1.medium.com/max/3000/1*gFGKwStt8iieSE0yrEp2Mg.jpeg)
+<figure>
+
+![The original hand crank for the desk](/images/adding-iot-to-my-home-office-desk-part-1/01-original-hand-crank-for-the-desk.jpg)
+<figcaption align="center">The original hand crank for the desk</figcaption>
+
+</figure>
 
 ## Hardware
 
@@ -28,7 +33,13 @@ Things did not go according to plan. I spent the day cutting a hole in a metal s
 
 I plugged in the motor, turned the voltage up on my bench power supply, and… nothing happened. A few moments later, the motor started spinning and grinding the teeth off the belt I purchased. I learned two important lessons from this: First of all, the belt was obviously not up to the challenge and a “high torque” motor doesn’t mean “I can lift anything in the world”. Secondly, look at how small that motor is compared to my fingers. It’s tiny!
 
-![The photo on the left is the motor and the belt. Top right is the gear attached to the desk (you’ll see later more of what is going on here). Bottom right is the motor in position on the desk.](https://cdn-images-1.medium.com/max/4032/1*eRmCmUYyiMbs8vS97GrvNw.jpeg)
+<figure>
+
+![The photo on the left is the motor and the belt. Top right is the gear attached to the desk (you’ll see later more of what is going on here). Bottom right is the motor in position on the desk.](/images/adding-iot-to-my-home-office-desk-part-1/02-desk-parts.jpg)
+
+<figcaption align="center">The photo on the left is the motor and the belt. Top right is the gear attached to the desk (you’ll see later more of what is going on here). Bottom right is the motor in position on the desk.</figcaption>
+
+</figure>
 
 **An appropriate motor**
 
@@ -46,13 +57,23 @@ I decided to make irreversible changes to the desk. I also knew that the rod tha
 
 Another beautiful Saturday rolled around and I hacked my desk to pieces. I split the rod in four places and filed down the shafts of the motors so they could be used to connect the rod back together again. I cut more holes in the metal shield for the two new motors to fit in. There was no belt this time, and the motors connected directly to the rod so these holes were quite large. As the evening approached I put all the pieces back together and loaded my desk with my office equipment.
 
-![The top two photos are the motors completely installed in the desk. The bottom photo is the rod that runs the length of the desk with the motors integrated with it.](https://cdn-images-1.medium.com/max/4032/1*rTBNqt6oxC2WYoItFZHZeg.jpeg)
+<figure>
+
+![The top two photos are the motors completely installed in the desk. The bottom photo is the rod that runs the length of the desk with the motors integrated with it.](/images/adding-iot-to-my-home-office-desk-part-1/03-desk-motors.jpg)
+
+<figcaption align="center">The top two photos are the motors completely installed in the desk. The bottom photo is the rod that runs the length of the desk with the motors integrated with it.</figcaption>
+
+</figure>
 
 I wired up the motors and connected them to my bench power supply. Then, I turned it on and… THE DESK MOVED! I was more confident this time since I sized the motors appropriately. I had also doubled up on the motors just to be sure, but seeing it move was an awesome feeling.
 
 Let me tell you though, the desk was slow. Like really slow. I took a video to show one of my friends that it worked and had to use the time lapse feature of my iPhone so he didn’t have to watch a five-minute video of my desk going from a sitting to a standing position. It was slow enough that I could start the desk movement, go grab a cup of coffee, come back, and still have to wait a minute before it reached the standing position.
 
- <iframe src="https://medium.com/media/c9032caa50268915317d1f42ab85759e" frameborder=0></iframe>
+<figure>
+
+{{< youtube Bc_MixJuHwI >}}
+
+</figure>
 
 **RPM Matters, Final Version**
 
@@ -62,7 +83,13 @@ This wasn’t too hard to do, but I couldn’t find a double shaft motor like I 
 
 Long story short, after another month of waiting for the perfect gear box to show up from China, and another Saturday, I had the desk moving at the speed I wanted!
 
-![My latest high torque motor on the left. Installed on the right.](https://cdn-images-1.medium.com/max/4032/1*EdzoGan-nYc6tKieAxnE1A.jpeg)
+<figure>
+
+![My latest high torque motor on the left. Installed on the right.](/images/adding-iot-to-my-home-office-desk-part-1/04-larger-desk-motor.jpg)
+
+<figcaption align="center">My latest high torque motor on the left. Installed on the right.</figcaption>
+
+</figure>
 
 ## A little more hardware and a lot more software
 
@@ -82,63 +109,65 @@ Then, your characteristics are packaged up in a service with a custom UUID that 
 
 In order to adjust the height, the desk has an TFMini-S LiDAR sensor mounted to the bottom to determine the current height. This sensor is funny because it is named LiDAR but doesn’t actually use a laser. It uses an LED and optics to determine the time-of-flight of the IR light. Anyway, the sensor determines the current height of the desk. Then, the control board determines the difference between the current height and the requested height, and activates the motor to spin in the necessary direction. Some of the code highlights are below but you can read the entire file [here](https://github.com/bloveless/esp32-iot-desk-ble/blob/master/src/main.cpp).
 
-    void setup()
-    {
-       Serial.begin(115200);
-       Serial2.begin(TFMINIS_BAUDRATE);
-       EEPROM.begin(3); // used for saving the height presets between reboots
+```c {linenos=inline}
+void setup()
+{
+    Serial.begin(115200);
+    Serial2.begin(TFMINIS_BAUDRATE);
+    EEPROM.begin(3); // used for saving the height presets between reboots
 
-       tfminis.begin(&Serial2);
-       tfminis.setFrameRate(0);
+    tfminis.begin(&Serial2);
+    tfminis.setFrameRate(0);
 
-       ledcSetup(UP_PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
-       ledcAttachPin(UP_PWM_PIN, UP_PWM_CHANNEL);
+    ledcSetup(UP_PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
+    ledcAttachPin(UP_PWM_PIN, UP_PWM_CHANNEL);
 
-       ledcSetup(DOWN_PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
-       ledcAttachPin(DOWN_PWM_PIN, DOWN_PWM_CHANNEL);
+    ledcSetup(DOWN_PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
+    ledcAttachPin(DOWN_PWM_PIN, DOWN_PWM_CHANNEL);
 
-       state_machine = new StateMachine();
-       state_machine->begin(*t_desk_height, UP_PWM_CHANNEL, DOWN_PWM_CHANNEL);
+    state_machine = new StateMachine();
+    state_machine->begin(*t_desk_height, UP_PWM_CHANNEL, DOWN_PWM_CHANNEL);
 
-       BLEDevice::init("ESP32_Desk");
-      ...
+    BLEDevice::init("ESP32_Desk");
+    ...
 
-       BLEServer *p_server = BLEDevice::createServer();
-       BLEService *p_service = p_server->createService(BLEUUID(SERVICE_UUID), 20);
+    BLEServer *p_server = BLEDevice::createServer();
+    BLEService *p_service = p_server->createService(BLEUUID(SERVICE_UUID), 20);
 
-       /* ------------------- SET HEIGHT TO PRESET CHARACTERISTIC -------------------------------------- */
-       BLECharacteristic *p_set_height_to_preset_characteristic = p_service->createCharacteristic(...);
-       p_set_height_to_preset_characteristic->setCallbacks(new SetHeightToPresetCallbacks());
-       /* ------------------- MOVE DESK UP CHARACTERISTIC ---------------------------------------------- */
-       BLECharacteristic *p_move_desk_up_characteristic = p_service->createCharacteristic(...);
-       p_move_desk_up_characteristic->setCallbacks(new MoveDeskUpCallbacks());
-       /* ------------------- MOVE DESK UP CHARACTERISTIC ---------------------------------------------- */
-       BLECharacteristic *p_move_desk_down_characteristic = p_service->createCharacteristic(...);
-       p_move_desk_down_characteristic->setCallbacks(new MoveDeskDownCallbacks());
-       /* ------------------- GET/SET HEIGHT 1 CHARACTERISTIC ------------------------------------------ */
-       BLECharacteristic *p_get_height_1_characteristic = p_service->createCharacteristic(...);
-       p_get_height_1_characteristic->setValue(state_machine->getHeightPreset1(), 1);
-       BLECharacteristic *p_save_current_height_as_height_1_characteristic = p_service->createCharacteristic(...);
-       p_save_current_height_as_height_1_characteristic->setCallbacks(new SaveCurrentHeightAsHeight1Callbacks());
-       /* ------------------- GET/SET HEIGHT 2 CHARACTERISTIC ------------------------------------------ */
-      ...
-       /* ------------------- GET/SET HEIGHT 3 CHARACTERISTIC ------------------------------------------ */
-      ...
-       /* ------------------- END CHARACTERISTIC DEFINITIONS ------------------------------------------ */
-       p_service->start();
+    /* ------------------- SET HEIGHT TO PRESET CHARACTERISTIC -------------------------------------- */
+    BLECharacteristic *p_set_height_to_preset_characteristic = p_service->createCharacteristic(...);
+    p_set_height_to_preset_characteristic->setCallbacks(new SetHeightToPresetCallbacks());
+    /* ------------------- MOVE DESK UP CHARACTERISTIC ---------------------------------------------- */
+    BLECharacteristic *p_move_desk_up_characteristic = p_service->createCharacteristic(...);
+    p_move_desk_up_characteristic->setCallbacks(new MoveDeskUpCallbacks());
+    /* ------------------- MOVE DESK UP CHARACTERISTIC ---------------------------------------------- */
+    BLECharacteristic *p_move_desk_down_characteristic = p_service->createCharacteristic(...);
+    p_move_desk_down_characteristic->setCallbacks(new MoveDeskDownCallbacks());
+    /* ------------------- GET/SET HEIGHT 1 CHARACTERISTIC ------------------------------------------ */
+    BLECharacteristic *p_get_height_1_characteristic = p_service->createCharacteristic(...);
+    p_get_height_1_characteristic->setValue(state_machine->getHeightPreset1(), 1);
+    BLECharacteristic *p_save_current_height_as_height_1_characteristic = p_service->createCharacteristic(...);
+    p_save_current_height_as_height_1_characteristic->setCallbacks(new SaveCurrentHeightAsHeight1Callbacks());
+    /* ------------------- GET/SET HEIGHT 2 CHARACTERISTIC ------------------------------------------ */
+    ...
+    /* ------------------- GET/SET HEIGHT 3 CHARACTERISTIC ------------------------------------------ */
+    ...
+    /* ------------------- END CHARACTERISTIC DEFINITIONS ------------------------------------------ */
+    p_service->start();
 
-       BLEAdvertising *p_advertising = p_server->getAdvertising();
-       p_advertising->start();
+    BLEAdvertising *p_advertising = p_server->getAdvertising();
+    p_advertising->start();
 
-       xTaskCreate(
-           updateDeskHeight,     // Function that should be called
-           "Update Desk Height", // Name of the task (for debugging)
-           1024,                 // Stack size
-           NULL,                 // Parameter to pass
-           5,                    // Task priority
-           NULL                  // Task handle
-       );
-    }
+    xTaskCreate(
+        updateDeskHeight,     // Function that should be called
+        "Update Desk Height", // Name of the task (for debugging)
+        1024,                 // Stack size
+        NULL,                 // Parameter to pass
+        5,                    // Task priority
+        NULL                  // Task handle
+    );
+}
+```
 
 There is a lot more going on in the main file but this code has enough context for us to see what is happening. You’ll notice that we are creating and configuring all the BLE callbacks for all the characteristics, including moving the desk manually, setting/retrieving the preset values, and most importantly, adjusting the desk to a specific preset.
 
