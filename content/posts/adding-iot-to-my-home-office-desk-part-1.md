@@ -175,13 +175,19 @@ The image below shows me interacting with that characteristic to adjust the desk
 
 So I finally had the desk doing everything I wanted. I could save heights into presets and recall those heights to move the desk into my favorite positions. I was using a [BLE Terminal](https://apps.apple.com/us/app/ble-terminal-bluetooth-tools/id1511543453) app on my phone and computer so I could send the raw messages to my desk in order to control its position. This worked but I knew that the battle with BLE was just beginning. In order to have a seamless interface with my desk I would also need to learn how to write an iOS app so I didn’t have to remember the HEX codes to send to my desk to save a preset and recall a position.
 
-![The raw bluetooth interface… all that was left at this point was to learn how to program an iOS app…](https://cdn-images-1.medium.com/max/4872/1*Q0dUUouLRI5nhFYa4eJdYA.jpeg)
+<figure>
+
+![The raw bluetooth interface… all that was left at this point was to learn how to program an iOS app…](/images/adding-iot-to-my-home-office-desk-part-1/05-raw-bluetooh-interface.jpg)
+
+<figcaption align="center">The raw bluetooth interface… all that was left at this point was to learn how to program an iOS app…</figcaption>
+
+</figure>
 
 Then my wife said something that would change everything… “What if you could control it with your voice?”
 
 In addition to being way cooler, and adding to our growing list of Google Assistant devices in our house, I wouldn’t have to write an iOS app to control it. I also wouldn’t have to take my phone out of my pocket to set the desk height. The little wins!
 
-This article is getting a little long so I’ll split this into a second article where I discuss adding Google Smart Home IoT [here](https://brennonloveless.medium.com/adding-iot-to-my-home-office-desk-part-2-3819a0a9c065).
+This article is getting a little long so I’ll split this into a second article where I discuss adding Google Smart Home IoT [here](/posts/adding-iot-to-my-home-office-desk-part-2/).
 
 ## Published To
 - [https://dzone.com/articles/adding-iot-to-my-home-office-desk-part-1](https://dzone.com/articles/adding-iot-to-my-home-office-desk-part-1)

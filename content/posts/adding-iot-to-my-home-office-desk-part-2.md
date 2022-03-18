@@ -4,7 +4,7 @@ date: 2020-11-19T16:00:00-07:00
 draft: false
 ---
 
-In [part one](https://brennonloveless.medium.com/adding-iot-to-my-home-office-desk-part-1-11eb1b6ae734) I discussed the first version/Bluetooth version of my desk upgrade.
+In [part one](/posts/adding-iot-to-my-home-office-desk-part-1/) I discussed the first version/Bluetooth version of my desk upgrade.
 
 In this article, I’ll discuss upgrading the desk to use Google Smart Home so I can control my desk with my voice.
 
@@ -14,129 +14,133 @@ Adding WiFi to the desk was actually pretty simple. I swapped out the microcontr
 
 Here is the necessary system architecture to get my desk to talk to Google. Let’s first talk about the interaction between myself and Google.
 
-![Full architecture/technology diagram](https://cdn-images-1.medium.com/max/4084/1*6XrlT0haUdISm1qcrEpKNg.jpeg)
+![Full architecture/technology diagram](/images/adding-iot-to-my-home-office-desk-part-2/01-full-arch.jpg)
 
 So, the desk was now WiFi enabled, then it was time to figure out how to interface with Google Smart Home. Google Smart Home is controlled through [Smart Home Actions](https://developers.google.com/assistant/smarthome/develop/create). What is interesting about Smart Home actions is that your service acts as the OAuth2 server and not as a client. Most of the work that I put into the server was related to implementing the OAuth2 Node.js Express app, which will eventually find its way up to Heroku and act as the proxy between Google and my desk.
 
 I was lucky enough that there is a decent implementation of a server through two libraries. The first was the underlying server implementation, called node-oauth2-server and found [here](https://oauth2-server.readthedocs.io/en/latest/). The second was the adapter to hook the library up to express, called express-oauth-server and found [here](https://github.com/oauthjs/express-oauth-server). The example in the GitHub repo for the adapter left a lot to be desired and didn’t really work. It took me a while to reverse engineer how to use the two libraries together. Now I have a decent model that supports registering accounts, refreshing tokens, and validating tokens. The following code snippet shows all the functions that are necessary for the OAuth2 server but you can see the full file [here](https://github.com/bloveless/esp32-iot-desk-server/blob/main/model.js).
 
-    const { Pool } = require("pg");
-    const crypto = require("crypto");
-    const pool = new Pool({
-       connectionString: process.env.DATABASE_URL
-    });
+```javascript {linenos=inline}
+const { Pool } = require("pg");
+const crypto = require("crypto");
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
-    module.exports.pool = pool;
-    module.exports.getAccessToken = (bearerToken) => {...};
-    module.exports.getClient = (clientId, clientSecret) => {...};
-    module.exports.getRefreshToken = (bearerToken) => {...};
-    module.exports.getUser = (email, password) => {...};
-    module.exports.getUserFromAccessToken = (token) => {...};
-    module.exports.getDevicesFromUserId = (userId) => {...};
-    module.exports.getDevicesByUserIdAndIds = (userId, deviceIds) => {...};
-    module.exports.setDeviceHeight = (userId, deviceId, newCurrentHeight) => {...};
-    module.exports.createUser = (email, password) => {...};
-    module.exports.saveToken = (token, client, user) => {...};
-    module.exports.saveAuthorizationCode = (code, client, user) => {...};
-    module.exports.getAuthorizationCode = (code) => {...};
-    module.exports.revokeAuthorizationCode = (code) => {...};
-    module.exports.revokeToken = (code) => {...};
+module.exports.pool = pool;
+module.exports.getAccessToken = (bearerToken) => {...};
+module.exports.getClient = (clientId, clientSecret) => {...};
+module.exports.getRefreshToken = (bearerToken) => {...};
+module.exports.getUser = (email, password) => {...};
+module.exports.getUserFromAccessToken = (token) => {...};
+module.exports.getDevicesFromUserId = (userId) => {...};
+module.exports.getDevicesByUserIdAndIds = (userId, deviceIds) => {...};
+module.exports.setDeviceHeight = (userId, deviceId, newCurrentHeight) => {...};
+module.exports.createUser = (email, password) => {...};
+module.exports.saveToken = (token, client, user) => {...};
+module.exports.saveAuthorizationCode = (code, client, user) => {...};
+module.exports.getAuthorizationCode = (code) => {...};
+module.exports.revokeAuthorizationCode = (code) => {...};
+module.exports.revokeToken = (code) => {...};
 
-    Next is setting up the actual express app. Below are the endpoints necessary for the OAuth server but you can read the full file here.
+Next is setting up the actual express app. Below are the endpoints necessary for the OAuth server but you can read the full file here.
 
-    const express = require("express");
-    const OAuth2Server = require("express-oauth-server");
-    const bodyParser = require("body-parser");
-    const cookieParser = require("cookie-parser");
-    const flash = require("express-flash-2");
-    const session = require("express-session");
-    const pgSession = require("connect-pg-simple")(session);
-    const morgan = require("morgan");
+const express = require("express");
+const OAuth2Server = require("express-oauth-server");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const flash = require("express-flash-2");
+const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
+const morgan = require("morgan");
 
-    const { google_actions_app } = require("./google_actions");
-    const model = require("./model");
-    const { getVariablesForAuthorization, getQueryStringForLogin } = require("./util");
-    const port = process.env.PORT || 3000;
+const { google_actions_app } = require("./google_actions");
+const model = require("./model");
+const { getVariablesForAuthorization, getQueryStringForLogin } = require("./util");
+const port = process.env.PORT || 3000;
 
-    // Create an Express application.
-    const app = express();
-    app.set("view engine", "pug");
-    app.use(morgan("dev"));
+// Create an Express application.
+const app = express();
+app.set("view engine", "pug");
+app.use(morgan("dev"));
 
-    // Add OAuth server.
-    app.oauth = new OAuth2Server({
-       model,
-       debug: true,
-    });
+// Add OAuth server.
+app.oauth = new OAuth2Server({
+   model,
+   debug: true,
+});
 
-    // Add body parser.
-    app.use(bodyParser.urlencoded({ extended: false }));
-    app.use(bodyParser.json());
-    app.use(express.static("public"));
+// Add body parser.
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(express.static("public"));
 
-    // initialize cookie-parser to allow us access the cookies stored in the browser.
-    app.use(cookieParser(process.env.APP_KEY));
+// initialize cookie-parser to allow us access the cookies stored in the browser.
+app.use(cookieParser(process.env.APP_KEY));
 
-    // initialize express-session to allow us track the logged-in user across sessions.
-    app.use(session({...}));
+// initialize express-session to allow us track the logged-in user across sessions.
+app.use(session({...}));
 
-    app.use(flash());
+app.use(flash());
 
-    // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
-    // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
-    app.use((req, res, next) => {...});
+// This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
+// This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
+app.use((req, res, next) => {...});
 
-    // Post token.
-    app.post("/oauth/token", app.oauth.token());
+// Post token.
+app.post("/oauth/token", app.oauth.token());
 
-    // Get authorization.
-    app.get("/oauth/authorize", (req, res, next) => {...}, app.oauth.authorize({...}));
+// Get authorization.
+app.get("/oauth/authorize", (req, res, next) => {...}, app.oauth.authorize({...}));
 
-    // Post authorization.
-    app.post("/oauth/authorize", function (req, res) {...});
-    app.get("/log-in", (req, res) => {...});
-    app.post("/log-in", async (req, res) => {...});
-    app.get("/log-out", (req, res) => {...});
-    app.get("/sign-up", async (req, res) => {...});
-    app.post("/sign-up", async (req, res) => {...});
-    app.post("/gaction/fulfillment", app.oauth.authenticate(), google_actions_app);
-    app.get('/healthz', ((req, res) => {...}));
-    app.listen(port, () => {
-       console.log(`Example app listening at port ${port}`);
-    });
+// Post authorization.
+app.post("/oauth/authorize", function (req, res) {...});
+app.get("/log-in", (req, res) => {...});
+app.post("/log-in", async (req, res) => {...});
+app.get("/log-out", (req, res) => {...});
+app.get("/sign-up", async (req, res) => {...});
+app.post("/sign-up", async (req, res) => {...});
+app.post("/gaction/fulfillment", app.oauth.authenticate(), google_actions_app);
+app.get('/healthz', ((req, res) => {...}));
+app.listen(port, () => {
+   console.log(`Example app listening at port ${port}`);
+});
+```
 
 There is quite a bit of code there but I’ll explain the highlights. The two routes that are used for the OAuth2 server are /oauth/token and /oauth/authorize. These are used for getting a new token or refreshing expired tokens. Next is getting the server to respond to the actual Google Action. You’ll notice that the /gaction/fulfillment endpoint points to a `google_actions_app` object. Google sends requests to your server in a specific format and provides a library to help you process those requests. Below are the functions necessary to communicate with Google but you can view the entire file [here](https://github.com/bloveless/esp32-iot-desk-server/blob/main/google_actions.js). Finally, there is a /healthz endpoint that I’ll talk about at the end of this article.
 
 The /gaction/fulfillment endpoint uses a middleware called app.oauth.authenticate() and all of my hard work getting the OAuth2 server working was so that this middleware would work. This middleware validates that the Bearer token that Google provides us references a valid user and has not expired. Next, the route sends the request and response to a `google_actions_app` object. Google sends requests to your server in a specific format and provides a library to help you parse and process those requests. Below are the functions necessary to communicate with Google but you can view the entire file [here](https://github.com/bloveless/esp32-iot-desk-server/blob/main/google_actions.js).
 
-    const { smarthome } = require('actions-on-google');
-    const mqtt = require('mqtt');
-    const mqtt_client = mqtt.connect(process.env.CLOUDMQTT_URL);
+```javascript {linenos=inline}
+const { smarthome } = require('actions-on-google');
+const mqtt = require('mqtt');
+const mqtt_client = mqtt.connect(process.env.CLOUDMQTT_URL);
 
-    const model = require('./model');
-    const { getTokenFromHeader } = require('./util');
+const model = require('./model');
+const { getTokenFromHeader } = require('./util');
 
-    mqtt_client.on('connect', () => {
-       console.log('Connected to mqtt');
-    });
+mqtt_client.on('connect', () => {
+   console.log('Connected to mqtt');
+});
 
-    const updateHeight = {
-       "preset one": (deviceId) => {
-           mqtt_client.publish(`/esp32_iot_desk/${deviceId}/command`, "1");
-       },
-       "preset two": (deviceId) => {
-           mqtt_client.publish(`/esp32_iot_desk/${deviceId}/command`, "2");
-       },
-       "preset three": (deviceId) => {
-           mqtt_client.publish(`/esp32_iot_desk/${deviceId}/command`, "3");
-       },
-    };
+const updateHeight = {
+   "preset one": (deviceId) => {
+       mqtt_client.publish(`/esp32_iot_desk/${deviceId}/command`, "1");
+   },
+   "preset two": (deviceId) => {
+       mqtt_client.publish(`/esp32_iot_desk/${deviceId}/command`, "2");
+   },
+   "preset three": (deviceId) => {
+       mqtt_client.publish(`/esp32_iot_desk/${deviceId}/command`, "3");
+   },
+};
 
-    const google_actions_app = smarthome({...});
-    google_actions_app.onSync(async (body, headers) => {...});
-    google_actions_app.onQuery(async (body, headers) => {...});
-    google_actions_app.onExecute(async (body, headers) => {...});
-    module.exports = { google_actions_app };
+const google_actions_app = smarthome({...});
+google_actions_app.onSync(async (body, headers) => {...});
+google_actions_app.onQuery(async (body, headers) => {...});
+google_actions_app.onExecute(async (body, headers) => {...});
+module.exports = { google_actions_app };
+```
 
 When you add a Smart Action to your Google account, Google will then perform a sync request. This request lets Google know what devices your account has access to. The next is a query request which is how Google queries your devices to determine their current state.
 
@@ -150,7 +154,7 @@ You can think of modes as a drop down where you can select one of N predefined v
 
 **Off To Production**
 
-Finally, Google Smart Home and my computer were communicating. Up until this point, I was using [ngrok](https://ngrok.com/) to run my express server locally. Now that I finally had my server working well enough it was time to make it accessible to Google at all times. This meant using Heroku to host my app. [Heroku ](https://www.heroku.com)is a PaaS provider that makes it easy to deploy and manage applications.
+Finally, Google Smart Home and my computer were communicating. Up until this point, I was using [ngrok](https://ngrok.com/) to run my express server locally. Now that I finally had my server working well enough it was time to make it accessible to Google at all times. This meant using Heroku to host my app. [Heroku](https://www.heroku.com) is a PaaS provider that makes it easy to deploy and manage applications.
 
 One of the major benefits of using Heroku is the add-ons. Heroku add-ons made it super simple to add a CloudMQTT and Postgres server to my application. Another benefit of using Heroku is how simple it is to build and deploy. Heroku automatically detects what code you are using and builds/deploys your code for you. You can find more information about this by reading about [Heroku Buildpacks](https://devcenter.heroku.com/articles/buildpacks). In my case whenever I push code to the Heroku git remote it will install all of my packages, strip out any development dependencies, and deploy my application all by simply issuing “git push heroku main”.
 
@@ -174,69 +178,75 @@ So Google communicates with Heroku, that request is parsed to determine the requ
 
 The final step is to receive the message on the ESP32 and move the desk. I’ll show some highlights of the desk code below but the full source code is [here](https://github.com/bloveless/esp32-iot-desk-mqtt/blob/master/src/main.cpp).
 
-    void setup()
-    {
-     Serial.begin(115200);
-    ...
-     tfminis.begin(&Serial2);
-     tfminis.setFrameRate(0);
+```c {linnos=inline}
+void setup()
+{
+ Serial.begin(115200);
+...
+ tfminis.begin(&Serial2);
+ tfminis.setFrameRate(0);
 
-    ...
+...
 
-     state_machine = new StateMachine();
-     state_machine->begin(*t_desk_height, UP_PWM_CHANNEL, DOWN_PWM_CHANNEL);
+ state_machine = new StateMachine();
+ state_machine->begin(*t_desk_height, UP_PWM_CHANNEL, DOWN_PWM_CHANNEL);
 
-     setup_wifi();
+ setup_wifi();
 
-     client.setServer(MQTT_SERVER_DOMAIN, MQTT_SERVER_PORT);
-     client.setCallback(callback);
-    ...
-    }
+ client.setServer(MQTT_SERVER_DOMAIN, MQTT_SERVER_PORT);
+ client.setCallback(callback);
+...
+}
+```
 
 When the desk is booted up we first begin communication between the TFMini-S, which is a distance sensor, to get the current desk height. We then set up a state machine for the actual desk movement. The state machine receives commands through MQTT and then is responsible for aligning the user’s request with the actual height of the desk read from the distance sensor. Finally, we connect to the WiFi network, connect to the MQTT server, and configure the callback for any data we receive on the MQTT topic we are subscribed to. I’ll show the callback function next.
 
-    void callback(char *topic, byte *message, unsigned int length)
-    {
-     ...
+```c {linenos=inline}
+void callback(char *topic, byte *message, unsigned int length)
+{
+ ...
 
-     String messageTemp;
+ String messageTemp;
 
-     for (int i = 0; i < length; i++)
-     {
-       messageTemp += (char)message[i];
-     }
+ for (int i = 0; i < length; i++)
+ {
+   messageTemp += (char)message[i];
+ }
 
-     if (messageTemp == "1") {
-       state_machine->requestStateChange(ADJUST_TO_PRESET_1_HEIGHT_STATE);
-     }
+ if (messageTemp == "1") {
+   state_machine->requestStateChange(ADJUST_TO_PRESET_1_HEIGHT_STATE);
+ }
 
-     if (messageTemp == "2") {
-       state_machine->requestStateChange(ADJUST_TO_PRESET_2_HEIGHT_STATE);
-     }
+ if (messageTemp == "2") {
+   state_machine->requestStateChange(ADJUST_TO_PRESET_2_HEIGHT_STATE);
+ }
 
-     if (messageTemp == "3") {
-       state_machine->requestStateChange(ADJUST_TO_PRESET_3_HEIGHT_STATE);
-     }
-    ...
-    }
+ if (messageTemp == "3") {
+   state_machine->requestStateChange(ADJUST_TO_PRESET_3_HEIGHT_STATE);
+ }
+...
+}
+```
 
 The state machine registers a state change received on the MQTT topic. Then, the state machine in the main loop processes the new state.
 
-    void loop()
-    {
-     if (!client.connected())
-     {
-       reconnect();
-     }
-     client.loop();
-     state_machine->processCurrentState();
-    }
+```c {linenos=inline}
+void loop()
+{
+ if (!client.connected())
+ {
+   reconnect();
+ }
+ client.loop();
+ state_machine->processCurrentState();
+}
+```
 
 The main loop does a few things: First, it reconnects to the MQTT server if it wasn’t already connected. Then, it processes any data it received on the subscribed MQTT topic. Finally, it works to put the desk into the correct location according to the state requested over the MQTT topic.
 
 There you have it! My desk is completely voice-controlled and communicating with Google to receive commands!
 
- <iframe src="https://medium.com/media/84d500fa280a6c89076c2b0c1c671de8" frameborder=0></iframe>
+{{< youtube auTg7ZkHjBM >}}
 
 **Final notes**
 
