@@ -4,13 +4,19 @@ date: 2021-02-02T16:00:00-07:00
 draft: false
 ---
 
-![Photo by [Denis Agati](https://unsplash.com/@denisagati?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/s/photos/logging?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)](https://cdn-images-1.medium.com/max/9216/1*uWiPGX3ozxZzcYtiMl4hTw.jpeg)
+<figure>
+
+![Photo by Denis Agati on Unsplash](/images/logging-vs-monitoring-part-2-best-practices/01-logging.jpg)
+
+<figcaption align="center">Photo by <a href="https://unsplash.com/@denisagati?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Denis Agati</a> on <a href="https://unsplash.com/s/photos/logging?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></figcaption>
+
+</figure>
 
 ## Best Practices for Logging
 
-In [part one](https://brennonloveless.medium.com/logging-v-monitoring-5f234d4edbd7) I discussed why monitoring matters and some ways to implement that. Now let’s talk about some best practices we can implement to make monitoring easier. Let’s start with some best practices for logging — formatting, context, and level.
+In [part one](/posts/logging-vs-monitoring-part-1/) I discussed why monitoring matters and some ways to implement that. Now let’s talk about some best practices we can implement to make monitoring easier. Let’s start with some best practices for logging — formatting, context, and level.
 
-First, be sure you [**“log a lot and then log some more.**”](https://www.loomsystems.com/blog/single-post/2017/01/26/9-logging-best-practices-based-on-hands-on-experience) Log everything you might need in both the happy path and error path since you’ll only be armed with these logs when another error occurs in the future.
+First, be sure you [“**log a lot and then log some more.**”](https://www.loomsystems.com/blog/single-post/2017/01/26/9-logging-best-practices-based-on-hands-on-experience) Log everything you might need in both the happy path and error path since you’ll only be armed with these logs when another error occurs in the future.
 
 Until recently, I didn’t think I needed as many logs in the happy path. Meanwhile, my error path is full of helpful logging messages. Here is one example that just happened to me this week. I had some code that would read messages from a Kafka topic, validate them, and then pass them off to the DB to be persisted. Well, I forgot to actually push the message into the validated-messages array, which resulted in it always being empty. My point here is that everything was part of the happy path, so there weren’t any error logs for me to check. It took me a full day of adding logging and enabling debugging in production to find my mistake (that I forgot to push to the array). If I had messages like “Validating 1000 messages” and “Found 0 valid messages to be persisted,” it would have been immediately obvious that none of my messages were making it through. I could have solved it in an hour if I had “logged a lot and then logged some more.”
 
@@ -20,21 +26,25 @@ This is another logging tip that I had taken for granted until recently. The for
 
 People use [JSON-formatted logs](https://hackernoon.com/log-everything-as-json-hmq32ax) more and more these days and I’m starting to lean into it myself. After all, there are many benefits to using JSON as your logging format. That said, if you pick a different log format, stick to it across all your systems and services. One of the major JSON-format benefits is that it is super easy to have generic error messages, and then add additional data/context. For example. . .
 
-    {
-      "message": "Validating messages",
-      "message_count": 1000
-    }
+```json
+{
+  "message": "Validating messages",
+  "message_count": 1000
+}
+```
 
 or
 
-    {
-      "message": "Persisting messages",
-      "message_count": 0
-    }
+```json
+{
+  "message": "Persisting messages",
+  "message_count": 0
+}
+```
 
 These messages are harder for humans to read, but easy to group, filter, and read for machines. In the end, we want to push as much processing onto the machine as possible anyway!
 
-Another tip about your actual log message: In many cases, you’ll be looking to find similar events that occurred. Maybe you found an error and you want to know how many times it occurred over the last seven days. If the error message is something like “System X failed because Z > Y” — where X, Y, and Z are all changing between each error message — then it will be difficult to classify those errors as the same.
+Another tip about your actual log message: In many cases, you’ll be looking to find similar events that occurred. Maybe you found an error and you want to know how many times it occurred over the last seven days. If the error message is something like "System X failed because Z > Y" — where X, Y, and Z are all changing between each error message — then it will be difficult to classify those errors as the same.
 
 To solve this, use a general message for the actual log message so you can search by the exact error wording. For example: “This system failed because there are more users than there are slots available.” Within the context of the log message, you can attach all the variables specific to this current failure.
 
@@ -44,7 +54,13 @@ This does require you to have an advanced-enough logging framework to attach con
 
 Rarely does a single log message paint the entire picture; including additional context with it will pay off. There is nothing more frustrating than when you get an alert saying “All your base are belong to us” and you have no idea what bases are missing or who “us” is referencing.
 
-![](https://cdn-images-1.medium.com/max/2484/0*ifKkc7eVEApwn9lr.jpg)
+<figure>
+
+![All your base are belong to use](/images/logging-vs-monitoring-part-2-best-practices/02-all-your-base-are-belong-to-us.jpg)
+
+<figcaption align="center">All your base are belong to us</figcaption>
+
+</figure>
 
 Whenever you are writing a log message, imagine receiving it at 1am. Include all the relevant information your sleepy self would need to look into the issue as quickly as possible. You may also choose to log a transaction ID as part of your context. We’ll chat about those later.
 

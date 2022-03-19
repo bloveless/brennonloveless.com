@@ -14,7 +14,13 @@ Adding WiFi to the desk was actually pretty simple. I swapped out the microcontr
 
 Here is the necessary system architecture to get my desk to talk to Google. Let’s first talk about the interaction between myself and Google.
 
+<figure>
+
 ![Full architecture/technology diagram](/images/adding-iot-to-my-home-office-desk-part-2/01-full-arch.jpg)
+
+<figcaption align="center">Full architecture/techology diagram</figcaption>
+
+</figure>
 
 So, the desk was now WiFi enabled, then it was time to figure out how to interface with Google Smart Home. Google Smart Home is controlled through [Smart Home Actions](https://developers.google.com/assistant/smarthome/develop/create). What is interesting about Smart Home actions is that your service acts as the OAuth2 server and not as a client. Most of the work that I put into the server was related to implementing the OAuth2 Node.js Express app, which will eventually find its way up to Heroku and act as the proxy between Google and my desk.
 

@@ -4,7 +4,13 @@ date: 2021-02-02T12:00:00-07:00
 draft: false
 ---
 
-![Photo by [Luke Chesser](https://unsplash.com/@lukechesser?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/s/photos/monitoring?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)](https://cdn-images-1.medium.com/max/9620/1*mpyrgqwMjfclV2oN1U2VIA.jpeg)
+<figure>
+
+![Photo by Luke Chesser on Unsplash](/images/logging-vs-monitoring-part-1/01-dashboard.jpg)
+
+<figcaption align="center">Photo by <a href="https://unsplash.com/@lukechesser?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Luke Chesser</a> on <a href="https://unsplash.com/s/photos/monitoring?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></figcaption>
+
+</figure>
 
 ## Introduction
 
@@ -28,7 +34,13 @@ For a while, I conflated logging and monitoring. At least, I thought they were t
 
 Let’s consider a system that has fantastic logging but no monitoring. It’s obvious why this doesn’t work. No matter how good our logs are, I guarantee that nobody actively reads them — especially when our logs get verbose or use formatting like JSON. It is impractical to assume that someone will comb all those logs and look for errors. Maybe when we have a small set of beta users, we can expect them to report every error so we can go back and look at what happened. But what if we have a million users? We can’t expect every one of those users to report each error they encounter.
 
-![](https://cdn-images-1.medium.com/max/4240/0*kRs3ZGiGshMrMJYE.png)
+<figure>
+
+![Example logs](/images/logging-vs-monitoring-part-1/02-logs.png)
+
+<figcaption align="center">Example logs</figcaption>
+
+</figure>
 
 This is where monitoring comes in. We need to put the systems in place that can do the looking up and coordinating for us. We need a system that will let us know when an error happens and, if it is good enough, why that error occurred.
 
@@ -48,7 +60,13 @@ Speaking of tools, here are some of my favorite tools to use when I’m monitori
 
 **Grafana**: Here, I create dashboards that provide high-level overviews of my applications. I also use Grafana for its alerting system.
 
-![](https://cdn-images-1.medium.com/max/2000/0*ovRTA5ZglVH4dcmM.png)
+<figure>
+
+![Grafana Dashboard](/images/logging-vs-monitoring-part-1/03-grafana-dashboard.png)
+
+<figcaption align="center">Grafana Dashboard</figcaption>
+
+</figure>
 
 **InfluxDB**: This time-series database records things like response times, response codes, and any interesting point-in-time data (like success vs error messages within a batch).
 
@@ -68,96 +86,104 @@ Now that our application is writing logs to the correct locations, let’s set u
 
 First, we [deploy the Elastic Cloud Operator](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-deploy-eck.html) and RBAC rules.
 
-    kubectl apply -f https://download.elastic.co/downloads/eck/1.3.1/all-in-one.yaml
+```bash
+  kubectl apply -f https://download.elastic.co/downloads/eck/1.3.1/all-in-one.yaml
 
-    # Monitor the output from the operator
-    kubectl -n elastic-system logs -f statefulset.apps/elastic-operator
+  # Monitor the output from the operator
+  kubectl -n elastic-system logs -f statefulset.apps/elastic-operator
+```
 
 Next, let’s actually [deploy the Elasticsearch cluster](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-deploy-elasticsearch.html).
 
-    cat <<EOF | kubectl apply -f -
-    apiVersion: elasticsearch.k8s.elastic.co/v1
-    kind: Elasticsearch
-    metadata:
-      name: quickstart
-    spec:
-      version: 7.10.2
-      nodeSets:
-      - name: default
-        count: 1
-        config:
-          node.store.allow_mmap: false
-    EOF
+```bash
+  cat <<EOF | kubectl apply -f -
+  apiVersion: elasticsearch.k8s.elastic.co/v1
+  kind: Elasticsearch
+  metadata:
+    name: quickstart
+  spec:
+    version: 7.10.2
+    nodeSets:
+    - name: default
+      count: 1
+      config:
+        node.store.allow_mmap: false
+  EOF
 
-    # Wait for the cluster to go green
-    kubectl get elasticsearch
+  # Wait for the cluster to go green
+  kubectl get elasticsearch
+```
 
 Now that we have an Elasticsearch cluster, let’s [deploy Kibana](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-deploy-kibana.html) so we can visually query Elasticsearch.
 
-    cat <<EOF | kubectl apply -f -
-    apiVersion: kibana.k8s.elastic.co/v1
-    kind: Kibana
-    metadata:
+```bash
+  cat <<EOF | kubectl apply -f -
+  apiVersion: kibana.k8s.elastic.co/v1
+  kind: Kibana
+  metadata:
+    name: quickstart
+  spec:
+    version: 7.10.2
+    count: 1
+    elasticsearchRef:
       name: quickstart
-    spec:
-      version: 7.10.2
-      count: 1
-      elasticsearchRef:
-        name: quickstart
-    EOF
+  EOF
 
-    # Get information about the kibana deployment
-    kubectl get kibana
+  # Get information about the kibana deployment
+  kubectl get kibana
+```
 
 Review [this page](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-deploy-kibana.html) for more information about accessing Kibana.
 
 Finally, we’ll add FileBeat, [using this guide](https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-beat-quickstart.html), to monitor the Kubernetes logs and ship them to Elasticsearch.
 
-    cat <<EOF | kubectl apply -f -
-    apiVersion: beat.k8s.elastic.co/v1beta1
-    kind: Beat
-    metadata:
+```bash
+  cat <<EOF | kubectl apply -f -
+  apiVersion: beat.k8s.elastic.co/v1beta1
+  kind: Beat
+  metadata:
+    name: quickstart
+  spec:
+    type: filebeat
+    version: 7.10.2
+    elasticsearchRef:
       name: quickstart
-    spec:
-      type: filebeat
-      version: 7.10.2
-      elasticsearchRef:
-        name: quickstart
-      config:
-        filebeat.inputs:
-        - type: container
-          paths:
-          - /var/log/containers/*.log
-      daemonSet:
-        podTemplate:
-          spec:
-            dnsPolicy: ClusterFirstWithHostNet
-            hostNetwork: true
-            securityContext:
-              runAsUser: 0
-            containers:
-            - name: filebeat
-              volumeMounts:
-              - name: varlogcontainers
-                mountPath: /var/log/containers
-              - name: varlogpods
-                mountPath: /var/log/pods
-              - name: varlibdockercontainers
-                mountPath: /var/lib/docker/containers
-            volumes:
+    config:
+      filebeat.inputs:
+      - type: container
+        paths:
+        - /var/log/containers/*.log
+    daemonSet:
+      podTemplate:
+        spec:
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          securityContext:
+            runAsUser: 0
+          containers:
+          - name: filebeat
+            volumeMounts:
             - name: varlogcontainers
-              hostPath:
-                path: /var/log/containers
+              mountPath: /var/log/containers
             - name: varlogpods
-              hostPath:
-                path: /var/log/pods
+              mountPath: /var/log/pods
             - name: varlibdockercontainers
-              hostPath:
-                path: /var/lib/docker/containers
-    EOF
+              mountPath: /var/lib/docker/containers
+          volumes:
+          - name: varlogcontainers
+            hostPath:
+              path: /var/log/containers
+          - name: varlogpods
+            hostPath:
+              path: /var/log/pods
+          - name: varlibdockercontainers
+            hostPath:
+              path: /var/lib/docker/containers
+  EOF
 
-    # Wait for the beat to go green
-    kubectl get beat
+  # Wait for the beat to go green
+  kubectl get beat
+```
 
 Since our application uses NGINX as a proxy, we can use [this wonderful module](https://github.com/influxdata/nginx-influxdb-module) to write the response codes and times to InfluxDB.
 
@@ -181,9 +207,15 @@ Essentially, anything that is interesting to code should be interesting to monit
 
 As a small bonus, here is a Pushover alert that I received from a setup similar to the one described above. I accidentally took down my father’s website during an experiment and this was the result.
 
-![](https://cdn-images-1.medium.com/max/5200/0*mFFZkyHz_xp4uQ79.jpeg)
+<figure>
 
-At this point, I’ll give you a break to digest everything I’ve talked about. In [part two](https://brennonloveless.medium.com/logging-best-practices-82da864c6f22) I’ll be discussing some logging best practices.
+![Pushover notification example](/images/logging-vs-monitoring-part-1/04-pushover.jpg)
+
+<figcaption align="center">Pushover notification example</figcaption>
+
+</figure>
+
+At this point, I’ll give you a break to digest everything I’ve talked about. In [part two](/posts/logging-vs-monitoring-part-2-best-practices/) I’ll be discussing some logging best practices.
 
 ## Published To
 - [https://brennonloveless.medium.com/logging-v-monitoring-5f234d4edbd7](https://brennonloveless.medium.com/logging-v-monitoring-5f234d4edbd7)

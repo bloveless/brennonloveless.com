@@ -4,7 +4,13 @@ date: 2020-04-20T12:00:00-07:00
 draft: false
 ---
 
-![Photo by [Jason Pofahl](https://unsplash.com/@jasonpofahlphotography?utm_source=medium&utm_medium=referral) on [Unsplash](https://unsplash.com?utm_source=medium&utm_medium=referral)](https://cdn-images-1.medium.com/max/12000/0*HNFNeozlI7z2snWF)
+<figure>
+
+![Photo by Jason Pofahl on Unsplash(https://unsplash.com?utm_source=medium&utm_medium=referral)](/images/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/01-bank-vault.jpg)
+
+<figcaption align="center">Photo by <a href="https://unsplash.com/@jasonpofahlphotography?utm_source=medium&utm_medium=referral">Jason Pofahl</a> on <a href="https://unsplash.com?utm_source=medium&utm_medium=referral">Unsplash</a></figcaption>
+
+</figure>
 
 ## Let me tell you a story
 
@@ -36,68 +42,70 @@ Let's talk about the app itself. Below you can see the Kubernetes config for the
 
 Below are some example environment configs for the initContainer and sidecar container.
 
-    initContainers:
-      - name: s3-restore
-        image: bloveless/s3-backup-restore:1.0.0
-        volumeMounts:
-          - name: public-files
-            mountPath: /data
-        args: ["restore"]
-        tty: true
-        env:
-          - name: AWS_ACCESS_KEY_ID
-            valueFrom:
-              secretKeyRef:
-                name: backup-keys
-                key: aws_access_key_id
-          - name: AWS_SECRET_ACCESS_KEY
-            valueFrom:
-              secretKeyRef:
-                name: backup-keys
-                key: aws_secret_access_key
-          - name: AWS_REGION
-            value: "us-west-2"
-          - name: S3_BUCKET
-            value: "my-backup-bucket"
-          - name: S3_PATH
-            value: "my-backup-path"
-          - name: CHOWN_ENABLE
-            value: "true"
-          - name: CHOWN_UID
-            value: "1000"
-          - name: CHOWN_GID
-            value: "1000"
+```yaml
+  initContainers:
+    - name: s3-restore
+      image: bloveless/s3-backup-restore:1.0.0
+      volumeMounts:
+        - name: public-files
+          mountPath: /data
+      args: ["restore"]
+      tty: true
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: backup-keys
+              key: aws_access_key_id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backup-keys
+              key: aws_secret_access_key
+        - name: AWS_REGION
+          value: "us-west-2"
+        - name: S3_BUCKET
+          value: "my-backup-bucket"
+        - name: S3_PATH
+          value: "my-backup-path"
+        - name: CHOWN_ENABLE
+          value: "true"
+        - name: CHOWN_UID
+          value: "1000"
+        - name: CHOWN_GID
+          value: "1000"
 
-    containers:
-      - name: s3-backup
-        image: bloveless/s3-backup-restore:1.0.0
-        volumeMounts:
-          - name: public-files
-            mountPath: /data
-        command: ["cron"]
-        env:
-          - name: AWS_ACCESS_KEY_ID
-            valueFrom:
-              secretKeyRef:
-                name: backup-keys
-                key: aws_access_key
-          - name: AWS_SECRET_ACCESS_KEY
-            valueFrom:
-              secretKeyRef:
-                name: backup-keys
-                key: aws_secret_key
-          - name: AWS_REGION
-            value: "us-west-2"
-          - name: S3_BUCKET
-            value: "my-backup-bucket"
-          - name: S3_PATH
-            value: "my-backup-path"
-          - name: CHOWN_ENABLE
-            value: "true"
-          - name: CHOWN_UID
-            value: "1000"
-          - name: CHOWN_GID
-            value: "1000"
+  containers:
+    - name: s3-backup
+      image: bloveless/s3-backup-restore:1.0.0
+      volumeMounts:
+        - name: public-files
+          mountPath: /data
+      command: ["cron"]
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: backup-keys
+              key: aws_access_key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backup-keys
+              key: aws_secret_key
+        - name: AWS_REGION
+          value: "us-west-2"
+        - name: S3_BUCKET
+          value: "my-backup-bucket"
+        - name: S3_PATH
+          value: "my-backup-path"
+        - name: CHOWN_ENABLE
+          value: "true"
+        - name: CHOWN_UID
+          value: "1000"
+        - name: CHOWN_GID
+          value: "1000"
+```
 
 The app also supports forcing a restore in case you don’t care what is in the directory and you just want to replace data in the directory. You can specify the file you want to restore from as well, in case you need to skip a corrupt backup or two. Finally, the app can also reset the user and group after a restore. All of those features are configurable through environment variables.
 
@@ -109,11 +117,23 @@ Another benefit of using a programming language rather than bash is that I have 
 
 Part of why I wanted to rewrite this image was to add compression since my AWS S3 fees were getting into the $10 range just for backups and I felt like this was a little high. So to optimize that cost a little more I’m going to look into using S3 Glacier to put some of the older backups into cold storage automatically. That’s not a change that will need to happen in the code, but a setting in S3 to automatically store older backups in Glacier which is significantly cheaper than S3 alone.
 
-![Dependency struct when doing a backup](https://cdn-images-1.medium.com/max/2000/1*UaQHyvRR4NK9HebcGunTGQ.png)
+<figure>
+
+![Dependency struct when doing a backup](/images/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/02-depdendency-struct.png)
+
+<figcaption align="center">Dependency struct when doing a backup</figcaption>
+
+</figure>
 
 I mentioned unit tests above which means that I should add unit tests to this. I’m currently using a pattern that is common in Go where you have dependency structs which contain your, you guessed it, dependencies. This makes it really easy to mock those dependencies for unit testing especially when you put interfaces in there. Look at the S3Service interface in the code as an example. What I found out is that the s3iface.S3API interface has over 300 methods in it. It seems like implementing that interface for a mock is not going to be an easy task.
 
-![S3 Interface… a small part of it](https://cdn-images-1.medium.com/max/5284/1*-Ppm4TlVsn-PNa8Eb-ynFA.png)
+<figure>
+
+![S3 Interface... a small part of it](/images/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/03-s3-interface.png)
+
+<figcaption align="center">S3 Interface... a small part of it</figcaption>
+
+</figure>
 
 It is going to be helpful for me to refactor my code to depend on some internal interface which has only the calls necessary to my code. The same refactoring will be helpful for the filesystem. At that point, I’ll be able to do have some useful unit tests for my system.
 

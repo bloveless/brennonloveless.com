@@ -17,23 +17,25 @@ Knowing this difference helps us consider what options we have from an algorithm
 
 ## Async/Await in Serial
 
-In order to understand this *parallel *algorithm, I’ll first use async and await to build a *serial *algorithm. If you write this code in an IDE, you’ll likely get a notification saying that using await in a loop is a missed optimization opportunity *— *and your IDE would be correct.
+In order to understand this *parallel* algorithm, I’ll first use async and await to build a *serial* algorithm. If you write this code in an IDE, you’ll likely get a notification saying that using await in a loop is a missed optimization opportunity *—* and your IDE would be correct.
 
-    (async () => {
-    	const urls = [
-    		"https://example.com/posts/1/",
-    		"https://example.com/posts/1/tags/",
-    	];
+```js {linenos=inline}
+(async () => {
+  const urls = [
+    "https://example.com/posts/1/",
+    "https://example.com/posts/1/tags/",
+  ];
 
-    	const data = [];
-      for (url of urls) {
-        await fetch(url)
-          .then((response) => response.json())
-          .then((jsonResponse) => data.push(jsonResponse));
-      }
+  const data = [];
+  for (url of urls) {
+    await fetch(url)
+      .then((response) => response.json())
+      .then((jsonResponse) => data.push(jsonResponse));
+  }
 
-      console.log(data);
-    })();
+  console.log(data);
+})();
+```
 
 One reason that you might implement an algorithm like this is if you need to get the data from two different URLs, then blend that data together to create your final object. In the code above, you can imagine that we are gathering some data about a post, then grabbing the data about the post's tags, and finally merging that data into the object you’d actually use later on.
 
@@ -61,20 +63,22 @@ The easiest way to make this algorithm faster is to remove the await keyword bef
 
 When we use await Promise.all, JavaScript will wait for the entire array of promises passed to Promise.all to resolve. Only then will it return all the results at the same time. A rewrite looks like this:
 
-    (async () => {
-        const urls = [
-            "https://example.com/posts/1/",
-            "https://example.com/posts/1/tags/",
-        ];
+```js {linenos=inline}
+(async () => {
+    const urls = [
+        "https://example.com/posts/1/",
+        "https://example.com/posts/1/tags/",
+    ];
 
-        const promises = urls.map((url) =>
-            fetch(url).then((response) => response.json())
-        );
+    const promises = urls.map((url) =>
+        fetch(url).then((response) => response.json())
+    );
 
-        const data = await Promise.all(promises);
+    const data = await Promise.all(promises);
 
-        console.log(data);
-    })();
+    console.log(data);
+})();
+```
 
 This code will map each URL into a promise and then await for all of those promises to complete. Now when we pass the await Promise.all portion of the code, we can be sure that both fetch requests have resolved and the responses are in the data array in the correct position. So data[0] will be our post data and data[1] will be our tags data.
 
@@ -84,7 +88,13 @@ Now that we have all the necessary building blocks to implement our pre-fetched 
 
 Below is a screenshot of the app I built for this article, and here is the link to the documentation about the [Harvard Art Museum API docs](https://github.com/harvardartmuseums/api-docs) [2]. You’ll need to apply for your own API key if you’d like to follow along. The process seemed pretty automatic to me since you just fill out a Google Form and then receive your API key in your email instantly.
 
-![](https://cdn-images-1.medium.com/max/3752/0*Gy4It1GP29PVgWjQ.png)
+<figure>
+
+![Final Project](/images/running-concurrent-requests-with-async-await-and-promise-all/01-harvard-gallery.png)
+
+<figcaption align="center">Final Project</figcaption>
+
+</figure>
 
 It doesn’t look like much, but as you navigate through the gallery, it pre-fetches the next pages of data automatically. That way, the user viewing the gallery shouldn’t see any loading time for the actual data. The images are only loaded when they are displayed on the page. And while those do load after the fact, the actual data for the page is loaded instantly since it is cached in the component. Finally, as a challenge to myself, I’m using Salesforce’s Lightning Web Components for this project *— *a completely new technology to me. Let’s get into building the component.
 
@@ -102,53 +112,59 @@ Alright, now that your environment is set up and you’ve created your first LWC
 
 A quick aside: Lightning Web Components are a little more limited than components you might be used to if you are coming from a React background. For example, you can’t use JavaScript expressions in component properties, i.e. the image src, in the following example:
 
-    <template for:each={records} for:item="record">
-        <img src={record.images[0].baseimageurl}>
-    </template>
+```xml {linenos=inline}
+<template for:each={records} for:item="record">
+    <img src={record.images[0].baseimageurl}>
+</template>
+```
 
-The reason for that is when you force all of your code to happen in the JavaScript files rather than in the HTML template files, your code becomes much easier to test. So let’s chalk this up to “it’s better for testing” and move on with our lives.
+The reason for that is when you force all of your code to happen in the JavaScript files rather than in the HTML template files, your code becomes much easier to test. So let’s chalk this up to "it's better for testing" and move on with our lives.
 
-In order to create this gallery, we’ll need to build two components. The first component is for displaying each gallery image, and the second component is for pre-fetching and pagination.
+In order to create this gallery, we'll need to build two components. The first component is for displaying each gallery image, and the second component is for pre-fetching and pagination.
 
 The first component is the simpler of the two. In VSCode, execute the command SFDX: Create Lightning Web Component and name the component harvardArtMuseumGalleryItem. This will create three files for us: an HTML, JavaScript, and XML file. This component will not need any changes to the XML file since the item itself isn't visible in any Salesforce admin pages.
 
 Next, change the contents of the HTML file to the following:
 
-    # force-app/main/default/lwc/harvardArtMuseumGalleryItem/harvardArtMuseumGalleryItem.html
+```xml {linenos=inline}
+# force-app/main/default/lwc/harvardArtMuseumGalleryItem/harvardArtMuseumGalleryItem.html
 
-    <template>
-        <div class="gallery-item" style={backgroundStyle}></div>
-        {title}
-    </template>
+<template>
+    <div class="gallery-item" style={backgroundStyle}></div>
+    {title}
+</template>
+```
 
 Note that in this HTML file, the style property is set to {backgroundStyle} which is a function in our JavaScript file, so let's work on that one.
 
 Change the contents of the JS file to the following:
 
-    # force-app/main/default/lwc/harvardArtMuseumGalleryItem/harvardArtMuseumGalleryItem.js
+```js {linenos=inline}
+// force-app/main/default/lwc/harvardArtMuseumGalleryItem/harvardArtMuseumGalleryItem.js
 
-    import { LightningElement, api } from 'lwc';
+import { LightningElement, api } from 'lwc';
 
-    export default class HarvardArtMuseumGalleryItem extends LightningElement {
-        @api
-        record;
+export default class HarvardArtMuseumGalleryItem extends LightningElement {
+    @api
+    record;
 
-        get image() {
-            if (this.record.images && this.record.images.length > 0) {
-                return this.record.images[0].baseimageurl;
-            }
-
-            return "";
+    get image() {
+        if (this.record.images && this.record.images.length > 0) {
+            return this.record.images[0].baseimageurl;
         }
 
-        get title() {
-            return this.record.title;
-        }
-
-        get backgroundStyle() {
-            return `background-image:url('${this.image}');`
-        }
+        return "";
     }
+
+    get title() {
+        return this.record.title;
+    }
+
+    get backgroundStyle() {
+        return `background-image:url('${this.image}');`
+    }
+}
+```
 
 There are a few things to notice here. First, the record property is decorated with @api which allows us to assign to this property from other components. Keep an eye out for this record property on the main gallery component. Also, since we can't have JavaScript expressions in our HTML files, I've also brought the background image inline CSS into the JavaScript file. This allows me to use string interpolation with the image. The image function is nothing special as it is *—* just an easy way for me to get the first image URL from the record that we received from the Harvard Art Gallery API.
 
@@ -156,186 +172,202 @@ Our final step of this component is to add a CSS file that wasn’t created for 
 
 Change the contents of your newly created CSS file to the following:
 
-    # force-app/main/default/lwc/harvardArtMuseumGalleryItem/harvardArtMuseumGalleryItem.css
+```css {linenos=inline}
+/* force-app/main/default/lwc/harvardArtMuseumGalleryItem/harvardArtMuseumGalleryItem.css */
 
-    .gallery-item {
-        height: 150px;
-        width: 100%;
-        background-size: cover;
-    }
+.gallery-item {
+    height: 150px;
+    width: 100%;
+    background-size: cover;
+}
+```
 
 Now that our busy work is out of the way, we can get to the actual gallery.
 
-Run SFDX: Create Lightning Web Component in VSCode again and name the component harvardArtMuseumGallery. This will, once again, generate our HTML, JavaScript, and XML files. We need to pay close attention to the XML file this time. The XML file is what tells Salesforce where our component is allowed to be located as well as how we will store our API key in the component.
+Run `SFDX: Create Lightning Web Component` in VSCode again and name the component harvardArtMuseumGallery. This will, once again, generate our HTML, JavaScript, and XML files. We need to pay close attention to the XML file this time. The XML file is what tells Salesforce where our component is allowed to be located as well as how we will store our API key in the component.
 
-    # force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.js-meta.xml
+```xml {linenos=inline}
+<!-- force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.js-meta.xml -->
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <LightningComponentBundle xmlns="<http://soap.sforce.com/2006/04/metadata>">
-        <apiVersion>51.0</apiVersion>
-        <isExposed>true</isExposed>
-        <targets>
-            <target>lightning__HomePage</target>
-        </targets>
-        <targetConfigs>
-            <targetConfig targets="lightning__HomePage">
-                <property name="harvardApiKey" type="String" default=""></property>
-            </targetConfig>
-        </targetConfigs>
-    </LightningComponentBundle>
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="<http://soap.sforce.com/2006/04/metadata>">
+    <apiVersion>51.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__HomePage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__HomePage">
+            <property name="harvardApiKey" type="String" default=""></property>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
+```
 
 There are three key things to pay attention to in this XML file. The first is isExposed which will allow our component to be found in the Salesforce admin. The second is the target which says which areas of the Salesforce site our component can be used. This one says that we are allowing our component to be displayed on HomePage type pages. Finally, the targetConfigs section will display a text box when adding the component. There, we can paste our API key (as seen in the following screenshot). You can find more information about this XML file [here](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningcomponentbundle.htm) [8].
 
-![](https://cdn-images-1.medium.com/max/4572/0*2a1gPSa3HtiMcm_0.png)
+<figure>
+
+![Salesforce Page Builder](/images/running-concurrent-requests-with-async-await-and-promise-all/02-salesforce-page-builder.png)
+
+<figcaption align="center">Salesforce Page Builder</figcaption>
+
+</figure>
 
 Next, let’s take care of the HTML and CSS files.
 
-    # force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.html
+```html {linenos=inline}
+<!-- force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.html -->
 
-    <template>
-        <lightning-card title="HelloWorld" icon-name="custom:custom14">
-            <div class="slds-m-around_medium">
-              <h1>Harvard Gallery</h1>
-              <div class="gallery-container">
-                <template for:each={records} for:item="record">
-                  <div key={record.index} class="row">
-                    <template for:each={record.value} for:item="item">
-                      <c-harvard-art-museum-gallery-item if:true={item} key={item.id} record={item}></c-harvard-art-museum-gallery-item>
-                    </template>
-                  </div>
+<template>
+    <lightning-card title="HelloWorld" icon-name="custom:custom14">
+        <div class="slds-m-around_medium">
+          <h1>Harvard Gallery</h1>
+          <div class="gallery-container">
+            <template for:each={records} for:item="record">
+              <div key={record.index} class="row">
+                <template for:each={record.value} for:item="item">
+                  <c-harvard-art-museum-gallery-item if:true={item} key={item.id} record={item}></c-harvard-art-museum-gallery-item>
                 </template>
               </div>
-              <div class="pagination-container">
-                <button type="button" onclick={previousPage}>&lt;</button>
-                <span class="current-page">
-                  {currentPage}
-                </span>
-                <button type="button" onclick={nextPage}>&gt;</button>
-              </div>
-            </div>
-          </lightning-card>
-    </template>
+            </template>
+          </div>
+          <div class="pagination-container">
+            <button type="button" onclick={previousPage}>&lt;</button>
+            <span class="current-page">
+              {currentPage}
+            </span>
+            <button type="button" onclick={nextPage}>&gt;</button>
+          </div>
+        </div>
+      </lightning-card>
+</template>
+```
 
 Most of this is standard HTML with some custom components. The line I want you to pay attention to most is the <c-harvard-art-museum-gallery-item> tag and its record property. You’ll remember that this is the property we decorated with @api in the gallery item JavaScript file. The @api decoration allows us to pass in the record through this property.
 
 Next, onto the CSS file:
 
-    # force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.css
+```css {linenos=inline}
+/* force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.css */
 
-    h1 {
-      font-size: 2em;
-      font-weight: bolder;
-      margin-bottom: .5em;
-    }
+h1 {
+  font-size: 2em;
+  font-weight: bolder;
+  margin-bottom: .5em;
+}
 
-    .gallery-container .row {
-      display: flex;
-    }
+.gallery-container .row {
+  display: flex;
+}
 
-    c-harvard-art-museum-gallery-item {
-      margin: 1em;
-      flex-grow: 1;
-      width: calc(25% - 2em);
-    }
+c-harvard-art-museum-gallery-item {
+  margin: 1em;
+  flex-grow: 1;
+  width: calc(25% - 2em);
+}
 
-    .pagination-container {
-      text-align: center;
-    }
+.pagination-container {
+  text-align: center;
+}
 
-    .pagination-container .current-page {
-      display: inline-block;
-      margin: 0 .5em;
-    }
+.pagination-container .current-page {
+  display: inline-block;
+  margin: 0 .5em;
+}
+```
 
 I’ve saved the most interesting for last! The JavaScript file includes our pre-fetching logic and page-rolling algorithm.
 
-    # force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.js
+```js {linenos=inline}
+// force-app/main/default/lwc/harvardArtMuseumGallery/harvardArtMuseumGallery.js
 
-    import { LightningElement, api } from "lwc";
+import { LightningElement, api } from "lwc";
 
-    const BASE_URL =
-      "https://api.harvardartmuseums.org/object?apikey=$1&size=8&hasimage=1&page=$2";
+const BASE_URL =
+  "https://api.harvardartmuseums.org/object?apikey=$1&size=8&hasimage=1&page=$2";
 
-    export default class HarvardArtMuseumGallery extends LightningElement {
-      @api harvardApiKey;
+export default class HarvardArtMuseumGallery extends LightningElement {
+  @api harvardApiKey;
 
-      error;
-      records;
-      currentPage = 1;
-      pagesCache = [];
+  error;
+  records;
+  currentPage = 1;
+  pagesCache = [];
 
-      chunkArray(array, size) {
-        let result = [];
-        for (let value of array) {
-          let lastArray = result[result.length - 1];
-          if (!lastArray || lastArray.length === size) {
-            result.push([value]);
-          } else {
-            lastArray.push(value);
-          }
-        }
-
-        return result.map((item, index) => ({ value: item, index: index }));
-      }
-
-      nextPage() {
-        this.currentPage++;
-        this.changePage(this.currentPage);
-      }
-
-      previousPage() {
-        if (this.currentPage > 1) {
-          this.currentPage--;
-          this.changePage(this.currentPage);
-        }
-      }
-
-      connectedCallback() {
-        this.changePage(1);
-      }
-
-      async changePage(page) {
-        let lowerBound = ((page - 3) < 0) ? 0 : page - 3;
-        const upperBound = page + 3;
-
-        // Cache the extra pages
-        const promises = [];
-        for (let i = lowerBound; i <= upperBound; i++) {
-          promises.push(this.getRecords(i));
-        }
-
-        Promise.all(promises).then(() => console.log('finished caching pages'));
-
-        // Now this.pages has all the data for the current page and the next/previous pages
-        // The idea is that we will start the previous promises in order to prefrech the pages
-        // and here we will wait for the current page to either be delivered from the cache or
-        // the api call
-        this.records = await this.getRecords(page);
-      }
-
-      async getRecords(page) {
-        if (page in this.pagesCache) {
-          return Promise.resolve(this.pagesCache[page]);
-        }
-
-        const url = BASE_URL.replace("$1", this.harvardApiKey).replace("$2", page);
-        return fetch(url)
-          .then((response) => {
-            if (!response.ok) {
-              this.error = response;
-            }
-
-            return response.json();
-          })
-          .then((responseJson) => {
-            this.pagesCache[page] = this.chunkArray(responseJson.records, 4);
-            return this.pagesCache[page];
-          })
-          .catch((errorResponse) => {
-            this.error = errorResponse;
-          });
+  chunkArray(array, size) {
+    let result = [];
+    for (let value of array) {
+      let lastArray = result[result.length - 1];
+      if (!lastArray || lastArray.length === size) {
+        result.push([value]);
+      } else {
+        lastArray.push(value);
       }
     }
+
+    return result.map((item, index) => ({ value: item, index: index }));
+  }
+
+  nextPage() {
+    this.currentPage++;
+    this.changePage(this.currentPage);
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.changePage(this.currentPage);
+    }
+  }
+
+  connectedCallback() {
+    this.changePage(1);
+  }
+
+  async changePage(page) {
+    let lowerBound = ((page - 3) < 0) ? 0 : page - 3;
+    const upperBound = page + 3;
+
+    // Cache the extra pages
+    const promises = [];
+    for (let i = lowerBound; i <= upperBound; i++) {
+      promises.push(this.getRecords(i));
+    }
+
+    Promise.all(promises).then(() => console.log('finished caching pages'));
+
+    // Now this.pages has all the data for the current page and the next/previous pages
+    // The idea is that we will start the previous promises in order to prefrech the pages
+    // and here we will wait for the current page to either be delivered from the cache or
+    // the api call
+    this.records = await this.getRecords(page);
+  }
+
+  async getRecords(page) {
+    if (page in this.pagesCache) {
+      return Promise.resolve(this.pagesCache[page]);
+    }
+
+    const url = BASE_URL.replace("$1", this.harvardApiKey).replace("$2", page);
+    return fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          this.error = response;
+        }
+
+        return response.json();
+      })
+      .then((responseJson) => {
+        this.pagesCache[page] = this.chunkArray(responseJson.records, 4);
+        return this.pagesCache[page];
+      })
+      .catch((errorResponse) => {
+        this.error = errorResponse;
+      });
+  }
+}
+```
 
 Notice that we are decorating the harvardApiKey with @api. This is how the targetConfig property from our XML file will be injected into our component. Most of the code in this file facilitates changing pages and chunking the response so that we get rows of four gallery items. Pay attention to changePage as well as getRecords: this is where the magic happens. First, notice that changePage calculates a range of pages from whatever the current requested page is. If the current requested page is five, then we will cache all pages from two until page eight. We then loop over the pages and create a promise for each page.
 
