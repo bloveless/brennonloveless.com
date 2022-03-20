@@ -6,7 +6,7 @@ draft: false
 
 <figure>
 
-![Photo by Jason Pofahl on Unsplash(https://unsplash.com?utm_source=medium&utm_medium=referral)](/images/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/01-bank-vault.jpg)
+![Photo by Jason Pofahl on Unsplash(https://unsplash.com?utm_source=medium&utm_medium=referral)](/images/posts/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/01-bank-vault.jpg)
 
 <figcaption align="center">Photo by <a href="https://unsplash.com/@jasonpofahlphotography?utm_source=medium&utm_medium=referral">Jason Pofahl</a> on <a href="https://unsplash.com?utm_source=medium&utm_medium=referral">Unsplash</a></figcaption>
 
@@ -119,7 +119,7 @@ Part of why I wanted to rewrite this image was to add compression since my AWS S
 
 <figure>
 
-![Dependency struct when doing a backup](/images/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/02-depdendency-struct.png)
+![Dependency struct when doing a backup](/images/posts/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/02-depdendency-struct.png)
 
 <figcaption align="center">Dependency struct when doing a backup</figcaption>
 
@@ -129,7 +129,7 @@ I mentioned unit tests above which means that I should add unit tests to this. I
 
 <figure>
 
-![S3 Interface... a small part of it](/images/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/03-s3-interface.png)
+![S3 Interface... a small part of it](/images/posts/how-i-backup-and-restore-data-in-my-kubernetes-persistent-volumes/03-s3-interface.png)
 
 <figcaption align="center">S3 Interface... a small part of it</figcaption>
 

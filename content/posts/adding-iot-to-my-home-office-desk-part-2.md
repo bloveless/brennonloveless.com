@@ -16,7 +16,7 @@ Here is the necessary system architecture to get my desk to talk to Google. Letâ
 
 <figure>
 
-![Full architecture/technology diagram](/images/adding-iot-to-my-home-office-desk-part-2/01-full-arch.jpg)
+![Full architecture/technology diagram](/images/posts/adding-iot-to-my-home-office-desk-part-2/01-full-arch.jpg)
 
 <figcaption align="center">Full architecture/techology diagram</figcaption>
 

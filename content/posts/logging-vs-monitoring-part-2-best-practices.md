@@ -6,7 +6,7 @@ draft: false
 
 <figure>
 
-![Photo by Denis Agati on Unsplash](/images/logging-vs-monitoring-part-2-best-practices/01-logging.jpg)
+![Photo by Denis Agati on Unsplash](/images/posts/logging-vs-monitoring-part-2-best-practices/01-logging.jpg)
 
 <figcaption align="center">Photo by <a href="https://unsplash.com/@denisagati?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Denis Agati</a> on <a href="https://unsplash.com/s/photos/logging?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></figcaption>
 
@@ -56,7 +56,7 @@ Rarely does a single log message paint the entire picture; including additional 
 
 <figure>
 
-![All your base are belong to use](/images/logging-vs-monitoring-part-2-best-practices/02-all-your-base-are-belong-to-us.jpg)
+![All your base are belong to use](/images/posts/logging-vs-monitoring-part-2-best-practices/02-all-your-base-are-belong-to-us.jpg)
 
 <figcaption align="center">All your base are belong to us</figcaption>
 

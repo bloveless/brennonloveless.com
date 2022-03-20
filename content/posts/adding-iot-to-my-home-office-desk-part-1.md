@@ -16,7 +16,7 @@ With that being said, let’s get started!
 
 <figure>
 
-![The original hand crank for the desk](/images/adding-iot-to-my-home-office-desk-part-1/01-original-hand-crank-for-the-desk.jpg)
+![The original hand crank for the desk](/images/posts/adding-iot-to-my-home-office-desk-part-1/01-original-hand-crank-for-the-desk.jpg)
 <figcaption align="center">The original hand crank for the desk</figcaption>
 
 </figure>
@@ -35,7 +35,7 @@ I plugged in the motor, turned the voltage up on my bench power supply, and… n
 
 <figure>
 
-![The photo on the left is the motor and the belt. Top right is the gear attached to the desk (you’ll see later more of what is going on here). Bottom right is the motor in position on the desk.](/images/adding-iot-to-my-home-office-desk-part-1/02-desk-parts.jpg)
+![The photo on the left is the motor and the belt. Top right is the gear attached to the desk (you’ll see later more of what is going on here). Bottom right is the motor in position on the desk.](/images/posts/adding-iot-to-my-home-office-desk-part-1/02-desk-parts.jpg)
 
 <figcaption align="center">The photo on the left is the motor and the belt. Top right is the gear attached to the desk (you’ll see later more of what is going on here). Bottom right is the motor in position on the desk.</figcaption>
 
@@ -59,7 +59,7 @@ Another beautiful Saturday rolled around and I hacked my desk to pieces. I split
 
 <figure>
 
-![The top two photos are the motors completely installed in the desk. The bottom photo is the rod that runs the length of the desk with the motors integrated with it.](/images/adding-iot-to-my-home-office-desk-part-1/03-desk-motors.jpg)
+![The top two photos are the motors completely installed in the desk. The bottom photo is the rod that runs the length of the desk with the motors integrated with it.](/images/posts/adding-iot-to-my-home-office-desk-part-1/03-desk-motors.jpg)
 
 <figcaption align="center">The top two photos are the motors completely installed in the desk. The bottom photo is the rod that runs the length of the desk with the motors integrated with it.</figcaption>
 
@@ -85,7 +85,7 @@ Long story short, after another month of waiting for the perfect gear box to sho
 
 <figure>
 
-![My latest high torque motor on the left. Installed on the right.](/images/adding-iot-to-my-home-office-desk-part-1/04-larger-desk-motor.jpg)
+![My latest high torque motor on the left. Installed on the right.](/images/posts/adding-iot-to-my-home-office-desk-part-1/04-larger-desk-motor.jpg)
 
 <figcaption align="center">My latest high torque motor on the left. Installed on the right.</figcaption>
 
@@ -177,7 +177,7 @@ So I finally had the desk doing everything I wanted. I could save heights into p
 
 <figure>
 
-![The raw bluetooth interface… all that was left at this point was to learn how to program an iOS app…](/images/adding-iot-to-my-home-office-desk-part-1/05-raw-bluetooh-interface.jpg)
+![The raw bluetooth interface… all that was left at this point was to learn how to program an iOS app…](/images/posts/adding-iot-to-my-home-office-desk-part-1/05-raw-bluetooh-interface.jpg)
 
 <figcaption align="center">The raw bluetooth interface… all that was left at this point was to learn how to program an iOS app…</figcaption>
 

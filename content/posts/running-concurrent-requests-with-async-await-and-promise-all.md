@@ -90,7 +90,7 @@ Below is a screenshot of the app I built for this article, and here is the link 
 
 <figure>
 
-![Final Project](/images/running-concurrent-requests-with-async-await-and-promise-all/01-harvard-gallery.png)
+![Final Project](/images/posts/running-concurrent-requests-with-async-await-and-promise-all/01-harvard-gallery.png)
 
 <figcaption align="center">Final Project</figcaption>
 
@@ -208,7 +208,7 @@ There are three key things to pay attention to in this XML file. The first is is
 
 <figure>
 
-![Salesforce Page Builder](/images/running-concurrent-requests-with-async-await-and-promise-all/02-salesforce-page-builder.png)
+![Salesforce Page Builder](/images/posts/running-concurrent-requests-with-async-await-and-promise-all/02-salesforce-page-builder.png)
 
 <figcaption align="center">Salesforce Page Builder</figcaption>
 

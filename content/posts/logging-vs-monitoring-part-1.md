@@ -6,7 +6,7 @@ draft: false
 
 <figure>
 
-![Photo by Luke Chesser on Unsplash](/images/logging-vs-monitoring-part-1/01-dashboard.jpg)
+![Photo by Luke Chesser on Unsplash](/images/posts/logging-vs-monitoring-part-1/01-dashboard.jpg)
 
 <figcaption align="center">Photo by <a href="https://unsplash.com/@lukechesser?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Luke Chesser</a> on <a href="https://unsplash.com/s/photos/monitoring?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></figcaption>
 
@@ -36,7 +36,7 @@ Let’s consider a system that has fantastic logging but no monitoring. It’s o
 
 <figure>
 
-![Example logs](/images/logging-vs-monitoring-part-1/02-logs.png)
+![Example logs](/images/posts/logging-vs-monitoring-part-1/02-logs.png)
 
 <figcaption align="center">Example logs</figcaption>
 
@@ -62,7 +62,7 @@ Speaking of tools, here are some of my favorite tools to use when I’m monitori
 
 <figure>
 
-![Grafana Dashboard](/images/logging-vs-monitoring-part-1/03-grafana-dashboard.png)
+![Grafana Dashboard](/images/posts/logging-vs-monitoring-part-1/03-grafana-dashboard.png)
 
 <figcaption align="center">Grafana Dashboard</figcaption>
 
@@ -209,7 +209,7 @@ As a small bonus, here is a Pushover alert that I received from a setup similar 
 
 <figure>
 
-![Pushover notification example](/images/logging-vs-monitoring-part-1/04-pushover.jpg)
+![Pushover notification example](/images/posts/logging-vs-monitoring-part-1/04-pushover.jpg)
 
 <figcaption align="center">Pushover notification example</figcaption>
 
