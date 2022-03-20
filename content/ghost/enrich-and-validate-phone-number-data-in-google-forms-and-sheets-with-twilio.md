@@ -17,7 +17,13 @@ If you don’t have a Twilio account, [sign up here](http://twilio.com/try-twil
 
 Once you’re signed in, go to your [dashboard](https://console.twilio.com/) and you’ll be able to see your Account SID and Auth Token. You’ll need both these in order to make Twilio Lookup API calls later.
 
-![dashboard:credentials.png](Enriching%20%206845c/dashboardcredentials.png)
+<figure>
+
+![Get your credentials from the dashboard](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/01-dashboard-credentials.png)
+
+<figcaption align="true">Get your credentials from the dashboard</figcaption>
+
+</figure>
 
 ## Setup the data collection form
 
@@ -25,13 +31,25 @@ Now, let’s go ahead and setup the form that we’ll be using to collect the us
 
 First go to [Google Forms](https://docs.google.com/forms) and create a new blank form. Give it a name and description if you’d like. Finally, let’s create the two fields we will be using. Name and Phone Number both of which will be a short answer field type.
 
-![Untitled](Enriching%20%206845c/Untitled.png)
+<figure>
+
+![Sign up for SMS form](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/02-sign-up-sms-form.png)
+
+<figcaption align="true">Sign up for SMS form</figcaption>
+
+</figure>
 
 At this point Google Forms has really taken care of us. We have a form that we can make public and it will automatically publish the responses to a Google Sheet for tracking. We can turn our Google Form up to 11 by incorporating it with Twilio.
 
 In order to get to the Google Sheet click on “Responses” and then click the Google Sheets icon in the top right. Select “Create a new spreadsheet” and you’ll be taken to a spreadsheet where your responses are being recorded.
 
-![go to google sheets.png](Enriching%20%206845c/go_to_google_sheets.png)
+<figure>
+
+![Go to Google Sheets](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/03-go-to-google-sheets.png)
+
+<figcaption align="center">Go to Google Sheets</figcaption>
+
+</figure>
 
 If you want to see it in action go back to your Google Form and click the eyeball icon in the top right. You’ll be taken to a preview link for your form, you can fill it out, and see your response is recorded in the Google Sheet we just created.
 
@@ -41,13 +59,19 @@ Google uses a language called [Google Apps Script](https://developers.google.com
 
 It’s time to get to the good stuff. Go to Extensions and click on Apps Script in order to add our api call to Twilio.
 
-![go to google apps script.png](Enriching%20%206845c/go_to_google_apps_script.png)
+<figure>
+
+![go to google apps script.png](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/04-go-to-google-apps-script.png)
+
+<figcaption align="center">Go to Google Apps Script</figcaption>
+
+</figure>
 
 You’ll be taken to a nearly empty editor where we can work on our code. One thing to note is that this Apps Script is already linked to our Google Sheet and Google Form. So when we add the trigger to the Apps Script it will automatically be called by only the Google Sheet and Google Form that we created for our awesome SMS service.
 
 First, replace all the code in the editor with the following snippet. We will dig into what the code is actually doing in a moment.
 
-```jsx
+```js {linenos=inline}
 function lookup(event) {
   const { namedValues, range } = event;
   const phoneNumber = namedValues["Phone Number"];
@@ -101,15 +125,33 @@ Notice the `testLookup` function at the bottom there. We can use that function i
 
 You’ll be shown a dialog prompt that is asking you to review permissions before you can execute your script.
 
-![Screen Shot 2022-02-09 at 10.00.50 PM.png](Enriching%20%206845c/Screen_Shot_2022-02-09_at_10.00.50_PM.png)
+<figure>
+
+![Grant access to your script](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/05-grant-access-to-your-script.png)
+
+<figcaption align="center">Grant access to your script</figcaption>
+
+</figure>
 
 You can accept most of the prompts but since your apps script is unverified you’ll be presented with a huge warning screen. You’ll need to click the “Show advanced” button and then the “Proceed to <Your Project Name> (unsafe)” button to continue. I didn’t rename my Apps Script project so mine says “Proceed to Untitled (unsafe)”. You’ll only have to do this once and you’ll be able to run your script as many times as you want.
 
-![Screen Shot 2022-02-09 at 10.01.13 PM.png](Enriching%20%206845c/Screen_Shot_2022-02-09_at_10.01.13_PM.png)
+<figure>
+
+![Proceed to your own project](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/06-proceed-to-your-own-script.png)
+
+<figcaption align="center">Proceed to your own project</figcaption>
+
+</figure>
 
 The script should have run now but if not click the “Run” button again. If everything is working correctly then you should see something similar to the image below.
 
-![Untitled](Enriching%20%206845c/Untitled%201.png)
+<figure>
+
+![Results from running your script](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/07-results-from-running-your-script.png)
+
+<figcaption align="center">Results from running your script</figcaption>
+
+</figure>
 
 Look at all the cool data we get back from the Twilio Lookup API! You can see that I picked the Google Customer Support phone number as the example phone number. We see the country code, formatted phone number, carrier name, etc.
 
@@ -119,23 +161,41 @@ On the bar on the left click on the clock icon. This area is for setting up trig
 
 Click the “Add Trigger” button and fill out the pop up as follows.
 
-![Screen Shot 2022-02-09 at 10.09.40 PM.png](Enriching%20%206845c/Screen_Shot_2022-02-09_at_10.09.40_PM.png)
+<figure>
+
+![Add trigger on form submit](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/08-add-trigger-on-form-submit.png)
+
+<figcaption align="center">Add trigger on form submit</figcaption>
+
+</figure>
 
 The two most important things here are that you pick the correct function to run, in our case `lookup` and that the event type is set to “On form submit”. You may have to go through the hoops to give permissions again after you click “Save”. If you are successful you should see that your triggers look the same as the following image.
 
-![Untitled](Enriching%20%206845c/Untitled%202.png)
+<figure>
+
+![Trigger added successfully](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/09-trigger-added-successfully.png)
+
+<figcaption align="center">Trigger added successfully</figcaption>
+
+</figure>
 
 Most importantly the event is “From spreadsheet - On form submit” and the function is our `lookup` function.
 
 At this point we have a fully functional form that is populating those additional columns we added earlier! Go back to your form, click the preview eye, and fill out a response. If you use your personal phone number you should see some familiar information show up in those extra columns. In my case I’ll use the Google phone number again but you can see that the additional columns are populated with Google’s information! Huzzah we’ve done it!
 
-![Untitled](Enriching%20%206845c/Untitled%203.png)
+<figure>
+
+![Additional columns populated](/images/ghost/enrich-and-validate-phone-number-data-in-google-forms-and-sheets-with-twilio/10-additional-columns-populated.png)
+
+<figcaption align="center">Additional columns populated</figcaption>
+
+</figure>
 
 ## Deep dive
 
 Now we can spend a little bit of time digging into that code we pasted in earlier. The first function is the `lookup` function which is called by the trigger we setup earlier.
 
-```jsx
+```js {linenos=inline}
 function lookup(event) {
   const { namedValues, range } = event;
   const phoneNumber = namedValues["Phone Number"];
@@ -156,7 +216,7 @@ The [event argument](https://developers.google.com/apps-script/guides/triggers/e
 
 The next function is the lookupNumber function which does the actual Twilio Lookup API call.
 
-```jsx
+```js {linenos=inline}
 function lookupNumber(phoneNumber) {
     var lookupUrl = "https://lookups.twilio.com/v1/PhoneNumbers/" + phoneNumber + "?Type=carrier";
 
@@ -179,7 +239,7 @@ Here you see that we are building the URL and inserting the phoneNumber argument
 
 Finally, we need to take the data we received from the API request and populate the spreadsheet with it.
 
-```jsx
+```js {linenos=inline}
 function updateSpreadsheet(sheet, numberResponse, row) {
   if (numberResponse['status'] == 404) {
     sheet.getRange(row, 4).setValue("not found");
