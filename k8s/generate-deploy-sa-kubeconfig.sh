@@ -2,7 +2,7 @@
 set -x
 set -e
 
-# Update these to match your environment
+# Update these to match your environment. Service account will need to exist already
 SERVICE_ACCOUNT_NAME=deploy
 CONTEXT=$(kubectl config current-context)
 NAMESPACE=brennonloveless-com
