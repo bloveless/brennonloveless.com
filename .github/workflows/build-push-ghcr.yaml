@@ -106,7 +106,7 @@ jobs:
         with:
           config: ${{ secrets.KUBE_CONFIG }}
           version: v1.23.5
-          command: -n brennonloveless-com set image deployment/brennonloveless-com brennonloveless-com=${{ steps.meta.outputs.tags }}@${{ steps.build.outputs.imageid }}
+          command: -n brennonloveless-com set image deployment/brennonloveless-com brennonloveless-com=${{ steps.meta.outputs.tags }}@${{ steps.build.outputs.digest }}
 
       - name: Verify k8s deployment
         if: ${{ matrix.platform == 'arm64' }}
