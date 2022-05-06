@@ -4,7 +4,7 @@ RUN mkdir -p /go/tmp
 
 WORKDIR /go/tmp
 
-RUN curl -sLO https://github.com/gohugoio/hugo/releases/download/v0.98.0/hugo_0.98.0_Linux-ARM64.tar.gz && tar xvvf hugo_0.98.0_Linux-ARM64.tar.gz && mv hugo /usr/bin/local/
+RUN wget https://github.com/gohugoio/hugo/releases/download/v0.98.0/hugo_0.98.0_Linux-ARM64.tar.gz && tar xvvf hugo_0.98.0_Linux-ARM64.tar.gz && mv hugo /usr/bin/local/
 
 RUN mkdir -p /go/app
 
