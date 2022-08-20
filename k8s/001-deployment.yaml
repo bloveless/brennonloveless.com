@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: brennonloveless-com
-        image: bloveless/brennonloveless-com:0.2.1
+        image: bloveless/brennonloveless-com:0.2.2
         ports:
         - containerPort: 80
       imagePullSecrets:

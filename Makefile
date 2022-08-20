@@ -1,4 +1,4 @@
-tag = 0.2.1
+tag = 0.2.2
 
 .PHONY: publish
 publish:
