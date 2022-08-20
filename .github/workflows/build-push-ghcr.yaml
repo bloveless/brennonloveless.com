@@ -79,52 +79,52 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - name: Install OpenVPN
-        if: ${{ matrix.platform == 'arm64' }}
-        run: |
-          sudo apt-get update
-          sudo apt-get --assume-yes --no-install-recommends install openvpn
+      # - name: Install OpenVPN
+      #   if: ${{ matrix.platform == 'arm64' }}
+      #  run: |
+      #    sudo apt-get update
+      #    sudo apt-get --assume-yes --no-install-recommends install openvpn
 
-      - name: Setup VPN config
-        if: ${{ matrix.platform == 'arm64' }}
-        run: |
-          echo "${{ secrets.CA_CRT }}" > ca.crt
-          echo "${{ secrets.SECRET_USERNAME_PASSWORD }}" > secret.txt
+      # - name: Setup VPN config
+      #   if: ${{ matrix.platform == 'arm64' }}
+      #   run: |
+      #     echo "${{ secrets.CA_CRT }}" > ca.crt
+      #     echo "${{ secrets.SECRET_USERNAME_PASSWORD }}" > secret.txt
 
-      - name: Connect VPN
-        if: ${{ matrix.platform == 'arm64' }}
-        run: sudo openvpn --config "$(pwd)/.github/vpn/client.ovpn" --log "vpn.log" --daemon
+      # - name: Connect VPN
+      #   if: ${{ matrix.platform == 'arm64' }}
+      #   run: sudo openvpn --config "$(pwd)/.github/vpn/client.ovpn" --log "vpn.log" --daemon
 
-      - name: Wait for a VPN connection
-        if: ${{ matrix.platform == 'arm64' }}
-        timeout-minutes: 1
-        run: until ping -c1 192.168.4.248; do sleep 2; done
+      # - name: Wait for a VPN connection
+      #   if: ${{ matrix.platform == 'arm64' }}
+      #   timeout-minutes: 1
+      #   run: until ping -c1 192.168.4.248; do sleep 2; done
 
-      - name: Deploy to k8s
-        if: ${{ matrix.platform == 'arm64' }}
-        uses: steebchen/kubectl@v2.0.0
-        with:
-          config: ${{ secrets.KUBE_CONFIG }}
-          version: v1.23.5
-          command: -n brennonloveless-com set image deployment/brennonloveless-com brennonloveless-com=${{ steps.meta.outputs.tags }}@${{ steps.build.outputs.digest }}
+      # - name: Deploy to k8s
+      #   if: ${{ matrix.platform == 'arm64' }}
+      #   uses: steebchen/kubectl@v2.0.0
+      #   with:
+      #     config: ${{ secrets.KUBE_CONFIG }}
+      #     version: v1.23.5
+      #     command: -n brennonloveless-com set image deployment/brennonloveless-com brennonloveless-com=${{ steps.meta.outputs.tags }}@${{ steps.build.outputs.digest }}
 
-      - name: Verify k8s deployment
-        if: ${{ matrix.platform == 'arm64' }}
-        uses: steebchen/kubectl@v2.0.0
-        with:
-          config: ${{ secrets.KUBE_CONFIG }}
-          version: v1.23.5
-          command: -n brennonloveless-com rollout status deployment/brennonloveless-com
+      # - name: Verify k8s deployment
+      #   if: ${{ matrix.platform == 'arm64' }}
+      #   uses: steebchen/kubectl@v2.0.0
+      #   with:
+      #     config: ${{ secrets.KUBE_CONFIG }}
+      #     version: v1.23.5
+      #     command: -n brennonloveless-com rollout status deployment/brennonloveless-com
 
-      - name: Kill VPN connection
-        if: ${{ matrix.platform == 'arm64' && always() }}
-        run: |
-          sudo chmod 777 vpn.log
-          sudo killall openvpn
+      # - name: Kill VPN connection
+      #   if: ${{ matrix.platform == 'arm64' && always() }}
+      #   run: |
+      #     sudo chmod 777 vpn.log
+      #     sudo killall openvpn
 
-      - name: Upload VPN logs
-        uses: actions/upload-artifact@v3
-        if: ${{ matrix.platform == 'arm64' && always() }}
-        with:
-          name: VPN logs
-          path: vpn.log
+      # - name: Upload VPN logs
+      #   uses: actions/upload-artifact@v3
+      #   if: ${{ matrix.platform == 'arm64' && always() }}
+      #   with:
+      #     name: VPN logs
+      #     path: vpn.log
