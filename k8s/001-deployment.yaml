@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: brennonloveless-com
-        image: ghcr.io/bloveless/brennonloveless.com:main
+        image: bloveless/brennonloveless-com:0.2.1
         ports:
         - containerPort: 80
       imagePullSecrets:
