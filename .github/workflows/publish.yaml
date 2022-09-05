@@ -2,12 +2,11 @@ name: Publish
 
 on:
   push:
-    # branches:
-    #   - main  # Set a branch to deploy
-  pull_request:
+    tags:
+      - 'v*.*.*'
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-22.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,3 +24,10 @@ jobs:
 
       - name: Build
         run: hugo --minify
+
+      - name: Compress
+        run: tar cvvfz brennonloveless.com-${{ github.ref_name }}-.tgz public/*
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with: brennonloveless.com-${{ github.ref_name }}-.tgz
