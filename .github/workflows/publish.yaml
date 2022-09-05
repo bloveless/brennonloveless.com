@@ -26,8 +26,9 @@ jobs:
         run: hugo --minify
 
       - name: Compress
-        run: tar cvvfz brennonloveless.com-${{ github.ref_name }}-.tgz public/*
+        run: tar cvvfz brennonloveless.com-${{ github.ref_name }}.tgz public/*
 
       - name: Release
         uses: softprops/action-gh-release@v1
-        with: brennonloveless.com-${{ github.ref_name }}-.tgz
+        with:
+          files: brennonloveless.com-${{ github.ref_name }}.tgz
